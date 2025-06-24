@@ -2,59 +2,90 @@
 
 namespace App\Http\Controllers\Student;
 
-use App\Http\Controllers\Controller;
-use App\Models\Unit;
-use App\Models\Level; // Make sure to import Level model
-use App\Models\Course; // Keep if needed for other parts, but not for year filter from levels
-use App\Models\Semester; // Keep if your 'semester' filter uses Semester model directly, otherwise remove.
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Course; // Import Course model
+use App\Models\Level;  // Import Level model
+use App\Models\Unit;   // Import Unit model
 
 class StudentUnitsController extends Controller
 {
-    public function index(Request $request)
+    // Important: Parameters Course $course = null, Level $level = null
+    // These allow Laravel to inject the Course and Level models if they are in the URL path.
+    public function index(Request $request, Course $course = null, Level $level = null)
     {
         $user = Auth::user();
 
-        // Basic role and profile completion checks (important to keep)
+        // --- Basic role and profile completion checks (KEEP THESE) ---
         if (!$user->isStudent()) {
             return redirect()->route('dashboard')->with('error', 'Access denied. You are not a student.');
         }
         if (!$user->profile_completed) {
             return redirect()->route('student.profile.complete')->with('error', 'Please complete your student profile first.');
         }
+        // --- END Basic checks ---
 
-        // Fetch distinct academic years from the 'levels' table using the new 'year_number' column
-        $availableYears = Level::distinct('year_number')->pluck('year_number')->sortDesc();
 
-        // Fetch distinct semester numbers from the 'levels' table using the new 'semester_number' column
-        $availableSemesters = Level::distinct('semester_number')->pluck('semester_number')->sort();
+        $unitsQuery = $user->units()->with(['course', 'level', 'lecturers']); // Eager load relationships
 
-        // Get selected filters from the request
-        $selectedYear = $request->input('year');
-        $selectedSemester = $request->input('semester');
+        // Determine if we are viewing specific units from the dashboard link
+        // This is true if $course and $level objects are provided by Route Model Binding
+        $isSpecificCourseLevelView = ($course !== null && $level !== null);
 
-        // Start building the query for units the student is enrolled in
-        // Eager load level to access its year_number and semester_number
-        $unitsQuery = $user->units()->with('level');
+        $selectedYear = null;
+        $selectedSemester = null;
 
-        // Apply filters if they exist
-        if ($selectedYear) {
-            $unitsQuery->whereHas('level', function ($query) use ($selectedYear) {
-                $query->where('year_number', $selectedYear);
+        if ($isSpecificCourseLevelView) {
+            // --- SCENARIO 1: Coming from Dashboard "View Units" link ---
+            // Filter strictly by the provided course and level IDs
+            $unitsQuery->whereHas('course', function ($query) use ($course) {
+                $query->where('id', $course->id);
+            })->whereHas('level', function ($query) use ($level) {
+                $query->where('id', $level->id);
             });
+
+            // Pre-populate filters based on the specific level, so the dropdowns show the correct values
+            $selectedYear = $level->year_number;
+            $selectedSemester = $level->semester_number;
+
+        } else {
+            // --- SCENARIO 2: Coming from Sidebar "My Units" link (general view with filters) ---
+            // Get selected filters from the request (these are from the form dropdowns)
+            $selectedYear = $request->input('year');
+            $selectedSemester = $request->input('semester');
+
+            // Apply filters if they exist from the form
+            if ($selectedYear) {
+                $unitsQuery->whereHas('level', function ($query) use ($selectedYear) {
+                    $query->where('year_number', $selectedYear);
+                });
+            }
+            if ($selectedSemester) {
+                $unitsQuery->whereHas('level', function ($query) use ($selectedSemester) {
+                    $query->where('semester_number', $selectedSemester);
+                });
+            }
         }
 
-        if ($selectedSemester) {
-            $unitsQuery->whereHas('level', function ($query) use ($selectedSemester) {
-                $query->where('semester_number', $selectedSemester);
-            });
-        }
+        // Get the paginated units after applying all filters
+        $units = $unitsQuery->orderBy('name')->paginate(10);
 
-        // Get the paginated units
-        $units = $unitsQuery->paginate(10);
+        // Fetch distinct academic years and semesters for the filter dropdowns (always needed for general view,
+        // and useful even for specific view if they want to switch filters).
+        $availableYears = Level::distinct()->pluck('year_number')->filter()->sort()->toArray();
+        $availableSemesters = Level::distinct()->pluck('semester_number')->filter()->sort()->toArray();
 
-        // Pass the data to the view
-        return view('student.my_units', compact('units', 'availableYears', 'availableSemesters', 'selectedYear', 'selectedSemester'));
+        // Pass all necessary data to the view
+        return view('student.my_units', compact(
+            'units',
+            'availableYears',
+            'availableSemesters',
+            'selectedYear',
+            'selectedSemester',
+            'course', // Pass these so the view can display specific course/level info
+            'level',  // Pass these so the view can display specific course/level info
+            'isSpecificCourseLevelView' // Crucial flag for conditional rendering in the view
+        ));
     }
 }

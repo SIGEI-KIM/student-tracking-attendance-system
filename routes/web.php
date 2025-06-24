@@ -3,7 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-// Admin Controllers
+// Admin Controllers (KEEP AS IS)
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LecturerController;
 use App\Http\Controllers\Admin\UserController;
@@ -12,21 +12,19 @@ use App\Http\Controllers\Admin\LevelController;
 use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Admin\CourseReportSubmissionController;
 
-// Student Controllers
+// Student Controllers (ADD/UPDATE IMPORTS)
 use App\Http\Controllers\Student\StudentProfileController;
 use App\Http\Controllers\Student\StudentEnrollmentController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
-use App\Http\Controllers\Student\StudentUnitsController;
-use App\Http\Controllers\Student\StudentAttendanceController;
+use App\Http\Controllers\Student\StudentUnitsController; // <-- This is the main one for units
+// use App\Http\Controllers\Student\StudentAttendanceController; // <-- COMMENTED OUT for now as per request
 
-// Lecturer Controllers
+// Lecturer Controllers (KEEP AS IS, assuming you've handled them correctly already)
 use App\Http\Controllers\Lecturer\CourseReportController;
 use App\Http\Controllers\Lecturer\DashboardController as LecturerDashboardController;
 use App\Http\Controllers\Lecturer\ReportController as LecturerReportController;
-// >>> ADD THESE IMPORTS FOR THE NEW LECTURER ROUTES <<<
-use App\Http\Controllers\Lecturer\UnitController as LecturerUnitController; // Assuming you have this controller
-use App\Http\Controllers\Lecturer\AttendanceController as LecturerAttendanceController; // Assuming you have this controller
-// >>> END ADDITIONS <<<
+use App\Http\Controllers\Lecturer\UnitController as LecturerUnitController;
+use App\Http\Controllers\Lecturer\AttendanceController as LecturerAttendanceController;
 
 
 Route::get('/', function () {
@@ -55,7 +53,7 @@ Route::middleware('auth')->group(function () {
 });
 
 
-// ADMIN ROUTES
+// ADMIN ROUTES (KEEP AS IS)
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -73,7 +71,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::delete('/lecturer-reports/{id}', [CourseReportSubmissionController::class, 'destroy'])->name('course_report_submissions.destroy');
 });
 
-// Lecturer Routes
+// Lecturer Routes (KEEP AS IS)
 Route::prefix('lecturer')
     ->name('lecturer.')
     ->middleware(['auth', 'verified', 'lecturer'])
@@ -99,32 +97,42 @@ Route::prefix('lecturer')
         Route::get('/course-report/submit', [CourseReportController::class, 'create'])->name('report_submission.create');
         Route::post('/course-report/submit', [CourseReportController::class, 'store'])->name('report_submission.store');
 
-        // >>> UPDATED LECTURER-SPECIFIC ROUTES FOR UNITS AND ATTENDANCE <<<
-        // Corrected route paths: no leading 'lecturer/' as it's already prefixed
-        Route::get('/units', [LecturerUnitController::class, 'index'])->name('units.index'); // Route will be /lecturer/units
-        Route::get('/attendance-records', [LecturerAttendanceController::class, 'index'])->name('attendance_records.index'); // Route will be /lecturer/attendance-records
-        // >>> END UPDATED LECTURER-SPECIFIC ROUTES <<<
+        // UPDATED LECTURER-SPECIFIC ROUTES FOR UNITS AND ATTENDANCE
+        Route::get('/units', [LecturerUnitController::class, 'index'])->name('units.index');
+        Route::get('/attendance-records', [LecturerAttendanceController::class, 'index'])->name('attendance_records.index');
     });
 
-// STUDENT ROUTES
+// STUDENT ROUTES - >>> ALL CHANGES ARE HERE <<<
 Route::prefix('student')->name('student.')->middleware(['auth', 'student'])->group(function () {
     Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
 
-    Route::get('/profile/complete', [StudentProfileController::class, 'complete'])->name('profile.complete');
+    // Route for completing student profile
+    // CHANGE THIS LINE: From 'create' to 'complete'
+    Route::get('/profile/complete', [StudentProfileController::class, 'complete'])->name('profile.complete'); //
 
-    Route::get('/units/{unit}/mark-attendance', [StudentAttendanceController::class, 'showMarkAttendanceForm'])->name('units.mark-attendance');
-    
-    Route::post('/profile/complete', [StudentProfileController::class, 'update'])->name('profile.save');
+    // This route is for handling the POST submission of the profile form.
+    // Based on your controller, the method is 'update', not 'store' for this particular action.
+    Route::post('/profile/complete', [StudentProfileController::class, 'update'])->name('profile.store'); //
 
-    Route::get('/my-units', [StudentUnitsController::class, 'index'])->name('units.index');
-
+    // Student Enrollment Routes (already correct)
     Route::middleware(['profile.complete'])->group(function () {
         Route::get('/enroll', [StudentEnrollmentController::class, 'index'])->name('enroll.index');
         Route::post('/enroll', [StudentEnrollmentController::class, 'store'])->name('enroll.store');
-
-        Route::get('/courses/{course}/levels/{level}/units', [StudentDashboardController::class, 'viewUnits'])
-            ->name('courses.levels.units');
     });
+
+    // **IMPORTANT: CONSOLIDATED STUDENT UNITS ROUTES**
+    // 1. General "My Units" page (from Sidebar, with filters)
+    //    This route accepts optional 'course' and 'level' parameters.
+    Route::get('/my-units', [StudentUnitsController::class, 'index'])->name('my-units');
+
+    // 2. Specific Course/Level Units (from Dashboard "View Units" link)
+    //    This route uses Route Model Binding for Course and Level.
+    Route::get('/units/{course}/{level}', [StudentUnitsController::class, 'index']) // Uses same controller method as above
+        ->name('view-enrolled-units'); // Renamed for clarity, was 'courses.levels.units'
+
+    // **REMOVE/COMMENT OUT ATTENDANCE ROUTE FOR NOW**
+    // Route::get('/units/{unit}/mark-attendance', [StudentAttendanceController::class, 'showMarkAttendanceForm'])->name('units.mark-attendance');
+
 });
 
 require __DIR__.'/auth.php';

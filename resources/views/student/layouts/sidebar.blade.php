@@ -22,7 +22,7 @@
             </li>
             {{-- NEW: My Registered Units link --}}
             <li>
-                <a href="{{ route('student.units.index') }}" class="flex items-center p-2 text-base font-normal text-white rounded-lg hover:bg-gray-700 group">
+                <a href="{{ route('student.my-units') }}" class="flex items-center p-2 text-base font-normal text-white rounded-lg hover:bg-gray-700 group">
                     <svg class="w-6 h-6 text-gray-400 transition duration-75 group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0113 3.414L16.586 7A2 2 0 0118 8.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm4 6a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm1 3a1 1 0 100 2h2a1 1 0 100-2H9z" clip-rule="evenodd"></path>
                     </svg>

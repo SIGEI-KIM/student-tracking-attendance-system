@@ -15,7 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'lecturer' => \App\Http\Middleware\LecturerMiddleware::class,
             'student' => \App\Http\Middleware\StudentMiddleware::class,
-            'profile.complete' => \App\Http\Middleware\EnsureProfileCompleted::class,
+            'profile.complete' => \App\Http\Middleware\ProfileCompleted::class, 
         ]);
 
     })

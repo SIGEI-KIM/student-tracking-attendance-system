@@ -32,7 +32,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('student.profile.save') }}" method="POST">
+            <form action="{{ route('student.profile.store') }}" method="POST">
                 @csrf
 
                 <div class="mb-4">
