@@ -13,23 +13,17 @@ return new class extends Migration
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // This might be used as a simple username or display name
+            $table->string('name'); 
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->string('role')->default('student');
-
-            // Add the new student profile fields here:
-            $table->string('full_name')->nullable(); // For student's full official name
-            $table->string('registration_number')->unique()->nullable(); // Unique registration number
-            $table->string('id_number')->unique()->nullable(); // Unique ID number
-            $table->string('gender')->nullable(); // Gender
-            $table->boolean('profile_completed')->default(false); // Flag to track if profile is complete
-
+            $table->boolean('profile_completed')->default(false);
+            $table->string('role')->default('student'); 
             $table->rememberToken();
             $table->timestamps();
         });
 
+        // The password_reset_tokens and sessions tables are fine here
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');

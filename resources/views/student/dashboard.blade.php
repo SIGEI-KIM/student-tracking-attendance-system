@@ -5,7 +5,6 @@
         </h2>
     </x-slot>
 
-    {{-- The content for the dashboard goes here. This will fill the {{ $slot }} in student-layout.blade.php --}}
     <div class="py-12 bg-gray-50">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
@@ -48,11 +47,13 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4 text-lg">
                             <div class="flex items-center">
                                 <span class="text-gray-600 font-medium w-36 shrink-0">Full Name:</span>
-                                <span class="text-gray-900 font-semibold">{{ Auth::user()->full_name ?? 'N/A' }}</span>
+                                {{-- CORRECTED: Access full_name through the student relationship --}}
+                                <span class="text-gray-900 font-semibold">{{ Auth::user()->student->full_name ?? 'N/A' }}</span>
                             </div>
                             <div class="flex items-center">
                                 <span class="text-gray-600 font-medium w-36 shrink-0">Reg. Number:</span>
-                                <span class="text-gray-900 font-semibold">{{ Auth::user()->registration_number ?? 'N/A' }}</span>
+                                {{-- CORRECTED: Access registration_number through the student relationship --}}
+                                <span class="text-gray-900 font-semibold">{{ Auth::user()->student->registration_number ?? 'N/A' }}</span>
                             </div>
                             <div class="flex items-center">
                                 <span class="text-gray-600 font-medium w-36 shrink-0">School Email:</span>
@@ -60,22 +61,46 @@
                             </div>
                             <div class="flex items-center">
                                 <span class="text-gray-600 font-medium w-36 shrink-0">ID Number:</span>
-                                <span class="text-gray-900 font-semibold">{{ Auth::user()->id_number ?? 'N/A' }}</span>
+                                {{-- CORRECTED: Access id_number through the student relationship --}}
+                                <span class="text-gray-900 font-semibold">{{ Auth::user()->student->id_number ?? 'N/A' }}</span>
                             </div>
                             <div class="flex items-center">
                                 <span class="text-gray-600 font-medium w-36 shrink-0">Gender:</span>
-                                <span class="text-gray-900 font-semibold">{{ Auth::user()->gender ?? 'N/A' }}</span>
+                                {{-- CORRECTED: Access gender through the student relationship --}}
+                                <span class="text-gray-900 font-semibold">{{ Auth::user()->student->gender ?? 'N/A' }}</span>
                             </div>
                             <div class="flex items-center">
                                 <span class="text-gray-600 font-medium w-36 shrink-0">Profile Status:</span>
+                                {{-- This is correctly checking profile_completed on the User model, assuming you've also fixed the StudentProfileController to update it. --}}
                                 @if(Auth::user()->profile_completed)
                                     <span class="px-3 py-1 inline-flex text-sm leading-5 font-bold rounded-full bg-green-200 text-green-900 shadow-sm">Complete ✅</span>
                                 @else
                                     <span class="px-3 py-1 inline-flex text-sm leading-5 font-bold rounded-full bg-red-200 text-red-900 shadow-sm">Incomplete ❌</span>
                                 @endif
                             </div>
+
+                            {{-- NEW: Display Enrolled Course in Profile Details --}}
+                            {{-- This section relies on $primaryEnrolledCourse being passed from the controller,
+                                 which likely comes from Auth::user()->student->courses->first() or similar.
+                                 If it's working, keep it as is. --}}
+                            @if($primaryEnrolledCourse)
+                                <div class="flex items-center">
+                                    <span class="text-gray-600 font-medium w-36 shrink-0">Enrolled Course:</span>
+                                    <span class="text-gray-900 font-semibold">
+                                        {{ $primaryEnrolledCourse->name }}
+                                        @if($primaryEnrolledCourse->level)
+                                            ({{ $primaryEnrolledCourse->level->name }})
+                                        @endif
+                                    </span>
+                                </div>
+                            @else
+                                <div class="flex items-center col-span-full">
+                                    <span class="text-red-500 italic">No primary course selected yet.</span>
+                                </div>
+                            @endif
                         </div>
 
+                        {{-- This section's conditional is good, checking Auth::user()->profile_completed --}}
                         @if(!Auth::user()->profile_completed)
                              <div class="col-span-full mt-8 pt-6 border-t border-gray-100 text-center">
                                  <p class="text-red-600 text-lg mb-4 font-medium">
@@ -88,7 +113,7 @@
                         @endif
                     </div>
 
-                    {{-- Enrolled Courses / Enrollment Prompt Section --}}
+                    {{-- Enrolled Courses / Enrollment Prompt Section (This remains as is for showing all courses or prompt) --}}
                     <div class="bg-white p-6 rounded-lg shadow-lg border border-gray-200">
                         @if(empty($enrolledCourses) || $enrolledCourses->isEmpty())
                             <div class="bg-blue-50 border border-blue-400 text-blue-700 px-6 py-5 rounded-md relative shadow-sm text-center">
@@ -120,7 +145,6 @@
                                         @if($course->level)
                                             <div class="mb-4">
                                                 <h5 class="font-semibold text-gray-700 mb-2">Level: <span class="text-blue-700">{{ $course->level->name }}</span></h5>
-                                                {{-- THIS IS THE LINE THAT NEEDS TO BE CORRECTED --}}
                                                 <a href="{{ route('student.view-enrolled-units', ['course' => $course->id, 'level' => $course->level->id]) }}"
                                                    class="inline-flex items-center text-indigo-600 hover:text-indigo-800 text-sm font-medium transition duration-150 ease-in-out">
                                                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>

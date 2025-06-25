@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Enums\Role; // Assuming you have this Enum
+use App\Enums\Role;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule; // For validation rules if needed elsewhere
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
@@ -14,14 +14,20 @@ class UserController extends Controller
      * Display a listing of the users, separated by role.
      */
     
-public function index()
-{
-    $students = User::where('role', Role::STUDENT)->get(); // No 'with()' needed here for profile fields
-    $lecturers = User::where('role', Role::LECTURER)->get();
-    $admins = User::where('role', Role::ADMIN)->get();
-
-    return view('admin.users.index', compact('students', 'lecturers', 'admins'));
-}
+     public function index()
+     {
+         $students = User::where('role', Role::STUDENT)
+                         // Eager load 'student' and then 'courses' nested under 'student'
+                         ->with(['student.courses']) //
+                         ->get();
+ 
+         $lecturers = User::where('role', Role::LECTURER)
+                          ->with('lecturer') // Assuming you want lecturer profiles here too
+                          ->get();
+         $admins = User::where('role', Role::ADMIN)->get();
+ 
+         return view('admin.users.index', compact('students', 'lecturers', 'admins'));
+     }
 
     /**
      * Show the form for creating a new user.

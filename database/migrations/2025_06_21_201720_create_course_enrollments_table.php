@@ -13,13 +13,12 @@ return new class extends Migration
     {
         Schema::create('course_enrollments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->onDelete('cascade'); // Assuming 'users' table is for students
+            $table->foreignId('student_id')->constrained('students')->onDelete('cascade'); 
             $table->foreignId('course_id')->constrained('courses')->onDelete('cascade');
-            $table->foreignId('level_id')->constrained('levels')->onDelete('cascade'); // To store the level at which the student enrolled in this course
+            $table->foreignId('level_id')->nullable()->constrained('levels')->onDelete('set null'); 
             $table->timestamps();
+            $table->unique(['student_id', 'course_id']);
 
-            // Add a unique constraint to prevent a student from enrolling in the same course at the same level multiple times
-            $table->unique(['user_id', 'course_id', 'level_id']);
         });
     }
 

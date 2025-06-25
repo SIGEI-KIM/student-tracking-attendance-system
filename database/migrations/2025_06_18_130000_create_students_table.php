@@ -11,12 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('unit_user', function (Blueprint $table) {
+        Schema::create('students', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('unit_id')->constrained()->onDelete('cascade');
+            $table->string('registration_number')->unique();
+            $table->string('id_number')->unique();
+            $table->string('gender');
+            $table->boolean('profile_completed')->default(false);
+
+            $table->string('full_name'); 
             $table->timestamps();
-            $table->unique(['user_id', 'unit_id']); // Prevents duplicate enrollments
         });
     }
 
@@ -25,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('unit_user');
+        Schema::dropIfExists('students');
     }
 };

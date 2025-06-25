@@ -7,26 +7,27 @@ use App\Models\Course;
 use App\Models\Level;
 use App\Models\Unit;
 use App\Models\User;
-use App\Enums\Role; // Assuming you have this Enum and use it for roles
+use App\Models\Student;
+use App\Models\Lecturer;
+use App\Enums\Role;
 
 class DashboardController extends Controller
 {
     public function index()
     {
         $stats = [
-            'students' => User::where('role', Role::STUDENT)->count(),
+            'students' => Student::count(),
             'lecturers' => User::where('role', Role::LECTURER)->count(),
             'courses' => Course::count(),
             'units' => Unit::count(),
         ];
 
-        // --- GENDER DISTRIBUTION DATA (for the chart) ---
         $totalStudents = $stats['students'];
 
-        $maleStudents = User::where('role', Role::STUDENT)->where('gender', 'Male')->count();
-        $femaleStudents = User::where('role', Role::STUDENT)->where('gender', 'Female')->count();
-        $otherGendersCounts = User::where('role', Role::STUDENT)
-                                  ->whereNotIn('gender', ['Male', 'Female'])
+        $maleStudents = Student::where('gender', 'Male')->count();
+        $femaleStudents = Student::where('gender', 'Female')->count();
+
+        $otherGendersCounts = Student::whereNotIn('gender', ['Male', 'Female'])
                                   ->groupBy('gender')
                                   ->selectRaw('gender, count(*) as count')
                                   ->pluck('count', 'gender')
@@ -49,8 +50,8 @@ class DashboardController extends Controller
         $chartLabels = ['Male', 'Female'];
         $chartData = [$genderData['Male'], $genderData['Female']];
         $chartColors = [
-            'rgba(59, 130, 246, 0.8)', // Blue for Male
-            'rgba(236, 72, 153, 0.8)', // Pink for Female
+            'rgba(59, 130, 246, 0.8)',
+            'rgba(236, 72, 153, 0.8)',
         ];
         $chartBorderColors = [
             'rgba(59, 130, 246, 1)',
@@ -87,22 +88,15 @@ class DashboardController extends Controller
             $baseLabel = explode(' (', $label)[0];
             $genderPercentages[$baseLabel] = $totalStudents > 0 ? round(($value / $totalStudents) * 100, 1) : 0;
         }
-        // --- END GENDER DISTRIBUTION DATA ---
 
-
-        // --- RECENT ACTIVITY DATA (Now specific to lecturers and added courses) ---
-        // Get the 5 most recently registered lecturers
         $latestLecturerRegistrations = User::where('role', Role::LECTURER)
-                                        ->latest() // Orders by 'created_at' DESC
-                                        ->take(5) // Limit to 5
+                                        ->latest()
+                                        ->take(5)
                                         ->get();
 
-        // Get the 5 most recently added courses (ordered by 'created_at')
-        $recentlyAddedCourses = Course::latest() // This defaults to 'created_at' DESC
-                                     ->take(5) // Limit to 5
+        $recentlyAddedCourses = Course::latest()
+                                     ->take(5)
                                      ->get();
-        // --- END RECENT ACTIVITY DATA ---
-
 
         return view('admin.dashboard', compact(
             'stats',
@@ -112,7 +106,7 @@ class DashboardController extends Controller
             'chartBorderColors',
             'genderPercentages',
             'totalStudents',
-            'latestLecturerRegistrations', 
+            'latestLecturerRegistrations',
             'recentlyAddedCourses'
         ));
     }

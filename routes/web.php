@@ -107,14 +107,18 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'student'])->gro
     Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
 
     // Route for completing student profile
-    // CHANGE THIS LINE: From 'create' to 'complete'
-    Route::get('/profile/complete', [StudentProfileController::class, 'complete'])->name('profile.complete'); //
+    // This route displays the profile completion form.
+    // It should point to the 'create' method in your controller.
+    Route::get('/profile/complete', [StudentProfileController::class, 'create'])->name('profile.complete');
 
-    // This route is for handling the POST submission of the profile form.
-    // Based on your controller, the method is 'update', not 'store' for this particular action.
-    Route::post('/profile/complete', [StudentProfileController::class, 'update'])->name('profile.store'); //
+    // This route handles the POST submission of the profile form.
+    // It should point to the 'store' method in your controller.
+    // The URI for the form's action is currently 'student.profile.store' (which maps to /student/profile/complete)
+    // which is fine, as long as the method is correct.
+    Route::post('/profile/complete', [StudentProfileController::class, 'store'])->name('profile.store');
 
-    // Student Enrollment Routes (already correct)
+    // Student Enrollment Routes (Keep these for now, though initial course selection is now in profile form)
+    // These routes would typically be for managing additional enrollments or levels.
     Route::middleware(['profile.complete'])->group(function () {
         Route::get('/enroll', [StudentEnrollmentController::class, 'index'])->name('enroll.index');
         Route::post('/enroll', [StudentEnrollmentController::class, 'store'])->name('enroll.store');
@@ -122,17 +126,14 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'student'])->gro
 
     // **IMPORTANT: CONSOLIDATED STUDENT UNITS ROUTES**
     // 1. General "My Units" page (from Sidebar, with filters)
-    //    This route accepts optional 'course' and 'level' parameters.
     Route::get('/my-units', [StudentUnitsController::class, 'index'])->name('my-units');
 
     // 2. Specific Course/Level Units (from Dashboard "View Units" link)
-    //    This route uses Route Model Binding for Course and Level.
-    Route::get('/units/{course}/{level}', [StudentUnitsController::class, 'index']) // Uses same controller method as above
-        ->name('view-enrolled-units'); // Renamed for clarity, was 'courses.levels.units'
+    Route::get('/units/{course}/{level}', [StudentUnitsController::class, 'index'])
+        ->name('view-enrolled-units');
 
     // **REMOVE/COMMENT OUT ATTENDANCE ROUTE FOR NOW**
     // Route::get('/units/{unit}/mark-attendance', [StudentAttendanceController::class, 'showMarkAttendanceForm'])->name('units.mark-attendance');
 
 });
-
 require __DIR__.'/auth.php';
