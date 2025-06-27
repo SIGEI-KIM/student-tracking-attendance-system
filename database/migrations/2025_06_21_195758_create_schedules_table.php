@@ -14,7 +14,7 @@ public function up(): void
     Schema::create('schedules', function (Blueprint $table) {
         $table->id();
         $table->foreignId('unit_id')->constrained()->onDelete('cascade');
-        $table->tinyInteger('day_of_week_numeric') // 0 for Sunday, 1 for Monday, ..., 6 for Saturday
+        $table->tinyInteger('day_of_week_numeric') 
               ->comment('0=Sunday, 1=Monday, ..., 6=Saturday');
         $table->time('start_time');
         $table->time('end_time');

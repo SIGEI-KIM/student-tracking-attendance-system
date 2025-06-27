@@ -33,7 +33,7 @@ class Student extends Model
     public function courses(): BelongsToMany
     {
         return $this->belongsToMany(Course::class, 'course_enrollments', 'student_id', 'course_id')
-            ->withPivot('level_id')
+            ->withPivot('level_id', 'semester_id')
             ->withTimestamps();
     }
 
@@ -41,5 +41,30 @@ class Student extends Model
     {
         return $this->belongsToMany(Unit::class, 'unit_student', 'student_id', 'unit_id')
                     ->withTimestamps();
+    }
+
+    /**
+     * Get the student's current active course enrollment.
+     * This method fetches the first course enrollment found for the student,
+     * assuming a student has one primary active enrollment for attendance tracking.
+     * It eager loads the pivot data (level_id, semester_id).
+     *
+     * You might need to refine the logic here if a student can have multiple
+     * active enrollments and you need to determine the *specific* one for attendance.
+     * For example, by adding an 'is_active' flag to 'course_enrollments' or
+     * filtering by current academic year/period.
+     *
+     * @return \App\Models\Course|null
+     */
+    public function currentEnrollment(): ?Course
+    {
+        // For simplicity, we'll return the first course enrollment found.
+        // In a more complex scenario, you might have an 'is_current' flag on
+        // the pivot table, or derive the current enrollment based on dates.
+        return $this->courses()->withPivot('level_id', 'semester_id')->first();
+    }
+    public function attendances()
+    {
+        return $this->hasMany(Attendance::class);
     }
 }

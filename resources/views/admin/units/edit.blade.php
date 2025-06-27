@@ -73,6 +73,24 @@
                             @enderror
                         </div>
 
+                        {{-- ADD THIS SEMESTER DROPDOWN FIELD --}}
+                        <div class="mb-4">
+                            <label for="semester_id" class="block text-sm font-medium text-gray-700">Semester</label>
+                            <select name="semester_id" id="semester_id"
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                                <option value="">-- Select Semester --</option>
+                                @foreach ($semesters as $semester)
+                                    <option value="{{ $semester->id }}" {{ old('semester_id', $unit->semester_id) == $semester->id ? 'selected' : '' }}>
+                                        {{ $semester->name }} (Year {{ $semester->year_number }})
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('semester_id')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                        {{-- END ADDITION --}}
+
                         <div class="mb-4">
                             <label for="lecturers" class="block text-sm font-medium text-gray-700">Assign Lecturers</label>
                             <select name="lecturers[]" id="lecturers" multiple

@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany; // Important
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -12,6 +12,7 @@ class Unit extends Model
 {
     use HasFactory;
 
+    // Remove 'lecturer_id' from fillable as it no longer exists on the table
     protected $fillable = ['name', 'code', 'course_id', 'level_id', 'semester_id'];
 
     public function course(): BelongsTo
@@ -29,12 +30,13 @@ class Unit extends Model
         return $this->belongsTo(Semester::class);
     }
 
-    public function lecturers(): BelongsToMany
-    {
-        // Change the related model from Lecturer::class to User::class
-        // because lecturer_unit.user_id refers to users.id
-        return $this->belongsToMany(User::class, 'lecturer_unit', 'unit_id', 'user_id');
-    }
+    /**
+     * Define the many-to-many relationship with users (lecturers).
+     */
+    public function lecturers(): BelongsToMany // <-- This must be 'lecturers' (plural)
+{
+    return $this->belongsToMany(User::class, 'lecturer_unit', 'unit_id', 'user_id');
+}
 
     public function attendances(): HasMany
     {

@@ -5,16 +5,32 @@ namespace App\Http\Controllers\Lecturer;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Attendance; // Assuming you have an Attendance model
+use App\Models\Attendance;
+use App\Models\Unit; // Make sure to import the Unit model
 
 class AttendanceController extends Controller
 {
     public function index()
     {
-        // Logic to fetch attendance records relevant to the logged-in lecturer
-        // For now, let's just fetch some records as a placeholder
-        $attendanceRecords = Attendance::where('lecturer_id', Auth::user()->lecturer->id)->paginate(15);
+        $lecturer = Auth::user()->lecturer;
 
-        return view('lecturer.attendance.index', compact('attendanceRecords'));
+        // 1. Fetch Units for the "Attendance Overview" section
+        // Eager load 'course', 'level', and 'attendances' for the count in the blade
+        $units = $lecturer->units()
+                          ->with(['course', 'level', 'attendances']) // Make sure 'attendances' is a relationship on Unit model
+                          ->get();
+
+        // Get the IDs of all units taught by this lecturer for filtering attendances
+        $unitIds = $units->pluck('id');
+
+        // 2. Fetch Recent Attendance Records for the table section
+        // Renamed to $recentAttendances to match your blade template
+        $recentAttendances = Attendance::whereIn('unit_id', $unitIds)
+                                       ->with(['student', 'unit']) // Eager load student and unit for display
+                                       ->latest('marked_at') // Assuming 'marked_at' is the correct column for latest attendances
+                                       ->paginate(15);
+
+        // Pass both variables to the view
+        return view('lecturer.attendance.index', compact('units', 'recentAttendances'));
     }
 }

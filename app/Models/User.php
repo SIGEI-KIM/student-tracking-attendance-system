@@ -66,6 +66,10 @@ class User extends Authenticatable
         return $this->hasMany(Attendance::class);
     }
 
+    public function course() // Note: Singular 'course'
+    {
+        return $this->belongsTo(Course::class);
+    }
 
 
     // Role checks remain on the User model

@@ -10,17 +10,18 @@
                     <span class="ml-3">Dashboard</span>
                 </a>
             </li>
-            {{-- Dynamically adjust link based on profile completion for 'Enroll in Course' --}}
+            {{-- REMOVED: 'Enroll in Course' link as enrollment is a one-time initial process --}}
+            {{--
             <li>
                 <a href="{{ Auth::user()->profile_completed ? route('student.enroll.index') : route('student.profile.complete') }}" class="flex items-center p-2 text-base font-normal text-white rounded-lg hover:bg-gray-700 group">
                     <svg class="w-6 h-6 text-gray-400 transition duration-75 group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
                         <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"></path>
-                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"></path>
+                        <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"></path>
                     </svg>
                     <span class="ml-3">Enroll in Course</span>
                 </a>
             </li>
-            {{-- NEW: My Registered Units link --}}
+            --}}
             <li>
                 <a href="{{ route('student.my-units') }}" class="flex items-center p-2 text-base font-normal text-white rounded-lg hover:bg-gray-700 group">
                     <svg class="w-6 h-6 text-gray-400 transition duration-75 group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -29,6 +30,42 @@
                     <span class="ml-3">My Units</span>
                 </a>
             </li>
+
+            {{-- NEW LINK: Unit Catalog (as before) --}}
+            <li>
+                <a href="{{ route('student.units.catalog.index') }}" class="flex items-center p-2 text-base font-normal text-white rounded-lg hover:bg-gray-700 group">
+                    <svg class="w-6 h-6 text-gray-400 transition duration-75 group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0113 3.414L16.586 7A2 2 0 0118 8.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm4 6a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1zm1 3a1 1 0 100 2h2a1 1 0 100-2H9z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="ml-3">Unit Catalog</span>
+                </a>
+            </li>
+
+            {{-- NEW LINK: Mark Attendance --}}
+            <li>
+                <a href="{{ route('student.attendance.index') }}" class="flex items-center p-2 text-base font-normal text-white rounded-lg hover:bg-gray-700 group">
+                    {{-- Icon for Attendance (using a calendar icon) --}}
+                    <svg class="w-6 h-6 text-gray-400 transition duration-75 group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="ml-3">Mark Attendance</span>
+                </a>
+            </li>
+
+            {{-- NEW LINK: Manage Academic (as before) --}}
+            <li>
+                <a href="{{ route('student.academic.index') }}" class="flex items-center p-2 text-base font-normal text-white rounded-lg hover:bg-gray-700 group">
+                    <svg class="w-6 h-6 text-gray-400 transition duration-75 group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M5 4a3 3 0 00-3 3v6a3 3 0 003 3h10a3 3 0 003-3V7a3 3 0 00-3-3H5zm-1 9v-1h5v2H5a1 1 0 01-1-1zm7 1h4a1 1 0 001-1v-1h-5v2zm0-4h5V8h-5v2zM9 8H4v2h5V8z" clip-rule="evenodd"></path>
+                    </svg>
+                    <span class="ml-3">Manage Academic</span>
+                </a>
+            </li>
+
+            {{-- REMOVED: Link to Attendance Records (since 'Mark Attendance' covers it for daily use) --}}
+            {{-- If "Attendance Records" was meant for viewing past records, you might want to create a separate page for that in the future. --}}
+            {{-- For now, "Mark Attendance" implies the daily action. --}}
+            {{--
             <li>
                 <a href="#" class="flex items-center p-2 text-base font-normal text-white rounded-lg hover:bg-gray-700 group">
                     <svg class="w-6 h-6 text-gray-400 transition duration-75 group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
@@ -37,6 +74,7 @@
                     <span class="ml-3">Attendance Records</span>
                 </a>
             </li>
+            --}}
         </ul>
 
         {{-- Logout link moved to the bottom using flex utilities --}}

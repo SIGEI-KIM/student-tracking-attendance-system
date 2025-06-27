@@ -2,62 +2,71 @@
 
 namespace App\Http\Controllers\Student;
 
-use Illuminate\Http\Request;
-use App\Models\Course; // Make sure you have a Course model
-use App\Models\Level;  // Make sure you have a Level model
-use App\Models\Unit;   // <--- IMPORTANT: Add this line to use the Unit model
-use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use App\Models\Course;
+use App\Models\Level; // Make sure Level model is imported
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class StudentEnrollmentController extends Controller
 {
+    /**
+     * Display the enrollment form.
+     */
     public function index()
     {
-        // Fetch all available courses
-        $courses = Course::all();
+        $user = Auth::user();
+        $student = $user->student;
 
-        // Fetch all available levels (e.g., Year 1, Year 2, etc.)
-        $levels = Level::all();
+        if (!$student) {
+            return redirect()->route('student.dashboard')->with('error', 'Student profile not found.');
+        }
 
-        return view('student.enroll.index', compact('courses', 'levels'));
+        $enrolledCourseIds = $student->courses->pluck('id')->toArray();
+        $availableCourses = Course::whereNotIn('id', $enrolledCourseIds)->get();
+
+        // No need to pass 'levels' to the view anymore if student doesn't select it here
+        return view('student.enroll', compact('availableCourses'));
     }
 
+    /**
+     * Handle the course enrollment.
+     */
     public function store(Request $request)
     {
+        // IMPORTANT: Validate only course_id. Level will be assigned automatically.
         $request->validate([
             'course_id' => 'required|exists:courses,id',
-            'level_id' => 'required|exists:levels,id',
         ]);
 
         $user = Auth::user();
-        $course = Course::find($request->course_id);
-        $level = Level::find($request->level_id);
+        $student = $user->student;
 
-        // Check if student is already enrolled in this exact course and level combination
-        if ($user->courses()->where('course_id', $course->id)->wherePivot('level_id', $level->id)->exists()) {
-             return redirect()->back()->with('warning', 'You are already enrolled in this course for this level.');
+        if (!$student) {
+            return redirect()->back()->with('error', 'Student profile not found.');
         }
 
-        // --- Step 1: Enroll student in the course/level ---
-        // Attach the course and level to the student (using the 'course_enrollments' pivot table)
-        // Your User model's `courses()` relationship must correctly use 'course_enrollments' pivot table
-        $user->courses()->attach($course->id, ['level_id' => $level->id]);
+        // Prevent re-enrollment if already enrolled in this course
+        if ($student->courses()->where('course_id', $request->course_id)->exists()) {
+            return redirect()->route('student.dashboard')->with('info', 'You are already enrolled in this course.');
+        }
 
-        // --- Step 2: Automatically enroll student in units for this course and level ---
-        // Find all units that belong to the selected course AND level
-        $unitsToEnroll = Unit::where('course_id', $course->id)
-                             ->where('level_id', $level->id)
-                             ->pluck('id') // Get just the IDs of these units
-                             ->toArray();
+        // --- AUTOMATICALLY ASSIGN DEFAULT LEVEL ---
+        $defaultLevel = Level::where('year_number', 1) // Assuming 'year_number' column exists
+                             ->where('semester_number', 1) // Assuming 'semester_number' column exists
+                             ->first();
 
-        // Attach these units to the student using the 'unit_user' pivot table
-        // The `syncWithoutDetaching` method is good here; it attaches new units
-        // without detaching any existing ones the student might already be linked to.
-        // If you want to ensure the student ONLY has units for the *current* enrollment:
-        // Use $user->units()->sync($unitsToEnroll); -- but this might remove units from other enrollments.
-        // For general enrollment, syncWithoutDetaching is safer.
-        $user->units()->syncWithoutDetaching($unitsToEnroll);
+        if (!$defaultLevel) {
+            // Handle case where default level isn't configured in your database
+            return redirect()->back()->with('error', 'Default academic level (Year 1, Semester 1) not found. Please contact administration.');
+        }
 
-        return redirect()->route('student.dashboard')->with('success', 'Successfully enrolled in ' . $course->name . ' (' . $level->name . ') and its associated units!');
+        // Attach the course with the automatically assigned level_id
+        $student->courses()->attach($request->course_id, [
+            'level_id' => $defaultLevel->id,
+            'user_id' => $user->id, // Explicitly provide user_id if your pivot uses it
+        ]);
+
+        return redirect()->route('student.dashboard')->with('success', 'Successfully enrolled in the course!');
     }
 }

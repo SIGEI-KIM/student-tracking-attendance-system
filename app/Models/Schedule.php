@@ -16,6 +16,16 @@ class Schedule extends Model
         'end_time',
     ];
 
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',  
+    ];
+
     public function unit()
     {
         return $this->belongsTo(Unit::class);

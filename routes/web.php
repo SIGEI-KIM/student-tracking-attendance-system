@@ -3,23 +3,25 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
-// Admin Controllers (KEEP AS IS)
+// Admin Controllers
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\LecturerController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\CourseController;
-use App\Http\Controllers\Admin\LevelController;
+use App\Http\Controllers\Admin\LevelController as AdminLevelController;
 use App\Http\Controllers\Admin\UnitController;
 use App\Http\Controllers\Admin\CourseReportSubmissionController;
 
-// Student Controllers (ADD/UPDATE IMPORTS)
+// Student Controllers
 use App\Http\Controllers\Student\StudentProfileController;
 use App\Http\Controllers\Student\StudentEnrollmentController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
-use App\Http\Controllers\Student\StudentUnitsController; // <-- This is the main one for units
-// use App\Http\Controllers\Student\StudentAttendanceController; // <-- COMMENTED OUT for now as per request
+use App\Http\Controllers\Student\StudentUnitsController;
+use App\Http\Controllers\Student\UnitCatalogController as StudentUnitCatalogController; // Corrected import
+use App\Http\Controllers\Student\AttendanceController as StudentAttendanceController; // Renamed for clarity
+use App\Http\Controllers\Student\StudentAcademicController; // Ensure this is imported
 
-// Lecturer Controllers (KEEP AS IS, assuming you've handled them correctly already)
+// Lecturer Controllers
 use App\Http\Controllers\Lecturer\CourseReportController;
 use App\Http\Controllers\Lecturer\DashboardController as LecturerDashboardController;
 use App\Http\Controllers\Lecturer\ReportController as LecturerReportController;
@@ -53,7 +55,7 @@ Route::middleware('auth')->group(function () {
 });
 
 
-// ADMIN ROUTES (KEEP AS IS)
+// ADMIN ROUTES
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -61,7 +63,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
 
     Route::resource('users', UserController::class);
     Route::resource('courses', CourseController::class);
-    Route::resource('levels', LevelController::class);
+    Route::resource('levels', AdminLevelController::class);
     Route::resource('units', UnitController::class);
 
     // ADMIN ROUTES FOR LECTURER COURSE REPORT SUBMISSIONS
@@ -71,7 +73,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'admin'])->group(fun
     Route::delete('/lecturer-reports/{id}', [CourseReportSubmissionController::class, 'destroy'])->name('course_report_submissions.destroy');
 });
 
-// Lecturer Routes (KEEP AS IS)
+// Lecturer Routes
 Route::prefix('lecturer')
     ->name('lecturer.')
     ->middleware(['auth', 'verified', 'lecturer'])
@@ -80,60 +82,49 @@ Route::prefix('lecturer')
         Route::get('/dashboard', [LecturerDashboardController::class, 'index'])
             ->name('dashboard');
 
-        // Attendance (now handled by LecturerDashboardController)
         Route::prefix('attendance')->name('attendance.')->group(function() {
-            Route::get('/', [LecturerDashboardController::class, 'attendancesIndex'])
+            // Changed from LecturerDashboardController if LecturerAttendanceController is specific for this
+            Route::get('/', [LecturerAttendanceController::class, 'index']) // Assuming LecturerAttendanceController handles this now
                 ->name('index');
 
-            Route::get('/unit/{unit}', [LecturerDashboardController::class, 'viewUnitAttendances'])
+            Route::get('/unit/{unit}', [LecturerAttendanceController::class, 'viewUnitAttendances']) // Assuming method is in LecturerAttendanceController
                 ->name('unit.view');
+            // Add other lecturer attendance routes here, e.g., mark student present
+            Route::post('/unit/{unit}/student/{user}/mark-present', [LecturerAttendanceController::class, 'markStudentPresent'])->name('mark.student.present');
+            Route::post('/unit/{unit}/student/{user}/mark-absent', [LecturerAttendanceController::class, 'markStudentAbsent'])->name('mark.student.absent');
         });
 
-        // Reports (Keep this as it was, assuming it uses LecturerReportController)
+
         Route::get('/reports', [LecturerReportController::class, 'index'])->name('reports.index');
         Route::post('/reports/generate-pdf', [LecturerReportController::class, 'generateUnitReportPdf'])->name('reports.generateUnitReportPdf');
 
-        // Course Report Submission Routes
         Route::get('/course-report/submit', [CourseReportController::class, 'create'])->name('report_submission.create');
         Route::post('/course-report/submit', [CourseReportController::class, 'store'])->name('report_submission.store');
 
-        // UPDATED LECTURER-SPECIFIC ROUTES FOR UNITS AND ATTENDANCE
         Route::get('/units', [LecturerUnitController::class, 'index'])->name('units.index');
         Route::get('/attendance-records', [LecturerAttendanceController::class, 'index'])->name('attendance_records.index');
     });
 
-// STUDENT ROUTES - >>> ALL CHANGES ARE HERE <<<
+// STUDENT ROUTES
 Route::prefix('student')->name('student.')->middleware(['auth', 'student'])->group(function () {
     Route::get('/dashboard', [StudentDashboardController::class, 'index'])->name('dashboard');
-
-    // Route for completing student profile
-    // This route displays the profile completion form.
-    // It should point to the 'create' method in your controller.
     Route::get('/profile/complete', [StudentProfileController::class, 'create'])->name('profile.complete');
-
-    // This route handles the POST submission of the profile form.
-    // It should point to the 'store' method in your controller.
-    // The URI for the form's action is currently 'student.profile.store' (which maps to /student/profile/complete)
-    // which is fine, as long as the method is correct.
     Route::post('/profile/complete', [StudentProfileController::class, 'store'])->name('profile.store');
 
-    // Student Enrollment Routes (Keep these for now, though initial course selection is now in profile form)
-    // These routes would typically be for managing additional enrollments or levels.
+    // Routes that require profile completion
     Route::middleware(['profile.complete'])->group(function () {
         Route::get('/enroll', [StudentEnrollmentController::class, 'index'])->name('enroll.index');
         Route::post('/enroll', [StudentEnrollmentController::class, 'store'])->name('enroll.store');
+        Route::get('/my-units', [StudentUnitsController::class, 'index'])->name('my-units');
+        Route::get('/academic', [StudentAcademicController::class, 'index'])->name('academic.index'); // Corrected Controller usage
+
+        // Unit Catalog Route
+        Route::get('/units/catalog', [StudentUnitCatalogController::class, 'index'])->name('units.catalog.index'); // Corrected Controller usage
+
+        // Student Attendance Routes - corrected
+        Route::get('/attendance', [StudentAttendanceController::class, 'index'])->name('attendance.index');
+        // CORRECTED LINE BELOW:
+        Route::post('/attendance/{unit}/mark', [StudentAttendanceController::class, 'mark'])->name('attendance.mark');
     });
-
-    // **IMPORTANT: CONSOLIDATED STUDENT UNITS ROUTES**
-    // 1. General "My Units" page (from Sidebar, with filters)
-    Route::get('/my-units', [StudentUnitsController::class, 'index'])->name('my-units');
-
-    // 2. Specific Course/Level Units (from Dashboard "View Units" link)
-    Route::get('/units/{course}/{level}', [StudentUnitsController::class, 'index'])
-        ->name('view-enrolled-units');
-
-    // **REMOVE/COMMENT OUT ATTENDANCE ROUTE FOR NOW**
-    // Route::get('/units/{unit}/mark-attendance', [StudentAttendanceController::class, 'showMarkAttendanceForm'])->name('units.mark-attendance');
-
 });
 require __DIR__.'/auth.php';

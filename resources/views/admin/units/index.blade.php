@@ -37,6 +37,11 @@
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Level
                                         </th>
+                                        {{-- ADD THIS SEMESTER HEADER --}}
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Semester
+                                        </th>
+                                        {{-- END ADDITION --}}
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Lecturers
                                         </th>
@@ -60,6 +65,11 @@
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {{ $unit->level->name ?? 'N/A' }}
                                             </td>
+                                            {{-- ADD THIS SEMESTER DATA CELL --}}
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                                {{ $unit->semester->name ?? 'N/A' }}
+                                            </td>
+                                            {{-- END ADDITION --}}
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 @forelse ($unit->lecturers as $lecturer)
                                                     {{ $lecturer->name }}{{ !$loop->last ? ',' : '' }}

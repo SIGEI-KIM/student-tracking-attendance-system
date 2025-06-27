@@ -6,14 +6,17 @@ use App\Http\Controllers\Controller;
 use App\Models\Unit;
 use App\Models\Course;
 use App\Models\Level;
-use App\Models\User;
+use App\Models\Semester;
+use App\Models\User; // Make sure User model is imported for lecturers
+
 use Illuminate\Http\Request;
 
 class UnitController extends Controller
 {
     public function index()
     {
-        $units = Unit::with(['course', 'level'])->latest()->paginate(10);
+        // ADD 'lecturers' to the with() array
+        $units = Unit::with(['course', 'level', 'semester', 'lecturers'])->latest()->paginate(10);
         return view('admin.units.index', compact('units'));
     }
 
@@ -22,7 +25,8 @@ class UnitController extends Controller
         $courses = Course::all();
         $levels = Level::all();
         $lecturers = User::where('role', 'lecturer')->get();
-        return view('admin.units.create', compact('courses', 'levels', 'lecturers'));
+        $semesters = Semester::all();
+        return view('admin.units.create', compact('courses', 'levels', 'lecturers', 'semesters'));
     }
 
     public function store(Request $request)
@@ -32,11 +36,12 @@ class UnitController extends Controller
             'code' => 'required|string|max:50|unique:units',
             'course_id' => 'required|exists:courses,id',
             'level_id' => 'required|exists:levels,id',
+            'semester_id' => 'required|exists:semesters,id',
             'lecturers' => 'required|array',
             'lecturers.*' => 'exists:users,id',
         ]);
 
-        $unit = Unit::create($request->only(['name', 'code', 'course_id', 'level_id']));
+        $unit = Unit::create($request->only(['name', 'code', 'course_id', 'level_id', 'semester_id']));
         $unit->lecturers()->sync($request->lecturers);
 
         return redirect()->route('admin.units.index')
@@ -46,11 +51,12 @@ class UnitController extends Controller
     public function edit(Unit $unit)
     {
         $courses = Course::all();
-        $levels = Level::all(); 
+        $levels = Level::all();
         $lecturers = User::where('role', 'lecturer')->get();
         $assignedLecturers = $unit->lecturers->pluck('id')->toArray();
-        
-        return view('admin.units.edit', compact('unit', 'courses', 'levels', 'lecturers', 'assignedLecturers'));
+        $semesters = Semester::all();
+
+        return view('admin.units.edit', compact('unit', 'courses', 'levels', 'lecturers', 'assignedLecturers', 'semesters'));
     }
 
     public function update(Request $request, Unit $unit)
@@ -60,11 +66,12 @@ class UnitController extends Controller
             'code' => 'required|string|max:50|unique:units,code,' . $unit->id,
             'course_id' => 'required|exists:courses,id',
             'level_id' => 'required|exists:levels,id',
+            'semester_id' => 'required|exists:semesters,id',
             'lecturers' => 'required|array',
             'lecturers.*' => 'exists:users,id',
         ]);
 
-        $unit->update($request->only(['name', 'code', 'course_id', 'level_id']));
+        $unit->update($request->only(['name', 'code', 'course_id', 'level_id', 'semester_id']));
         $unit->lecturers()->sync($request->lecturers);
 
         return redirect()->route('admin.units.index')
@@ -74,9 +81,7 @@ class UnitController extends Controller
     public function destroy(Unit $unit)
     {
         $unit->lecturers()->detach();
-
         $unit->delete();
-
         return redirect()->route('admin.units.index')
             ->with('success', 'Unit deleted successfully.');
     }
