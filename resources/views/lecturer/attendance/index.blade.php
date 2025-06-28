@@ -1,4 +1,4 @@
-@extends('layouts.lecturer') {{-- EXTENDS YOUR BASE LECTURER LAYOUT --}}
+@extends('layouts.lecturer') 
 
 @section('content')
 <div class="py-12">
@@ -42,7 +42,7 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             @forelse($recentAttendances as $attendance)
                             <tr>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ $attendance->student->name }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ $attendance->student->user->name ?? 'N/A' }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                     {{ $attendance->unit->code }} - {{ $attendance->unit->name }}
                                 </td>

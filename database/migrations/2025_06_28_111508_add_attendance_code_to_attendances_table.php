@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('attendances', function (Blueprint $table) {
-            // Add student_id column as a foreign key
-            $table->foreignId('student_id')->constrained('students')->cascadeOnDelete();
+            $table->foreignId('attendance_code_id')->nullable()->constrained()->onDelete('set null');
+            $table->foreignId('lecturer_id')->nullable()->constrained('users')->onDelete('set null'); // Assuming users table for lecturers
         });
     }
 
@@ -23,8 +23,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('attendances', function (Blueprint $table) {
-            // Drop the foreign key constraint first
-            $table->dropConstrainedForeignId('student_id');
+            $table->dropConstrainedForeignId('attendance_code_id');
+            $table->dropConstrainedForeignId('lecturer_id');
         });
     }
 };

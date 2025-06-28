@@ -11,14 +11,12 @@ return new class extends Migration
         Schema::create('attendances', function (Blueprint $table) {
             $table->id();
             $table->foreignId('student_id')->constrained('students')->onDelete('cascade');
-            $table->foreignId('unit_id')->constrained('units')->onDelete('cascade'); // The unit for which attendance is marked
-            $table->date('attendance_date'); // The specific date for this attendance record
-            $table->enum('status', ['present', 'absent'])->default('absent'); // 'present' if marked, 'absent' otherwise
-            $table->timestamp('marked_at')->nullable(); // When the attendance was explicitly marked (if present)
-            $table->timestamps(); // created_at (when record was made), updated_at
-
-            // Ensure a student can only have one attendance record per unit per day
-            $table->unique(['user_id', 'unit_id', 'attendance_date']);
+            $table->foreignId('unit_id')->constrained('units')->onDelete('cascade');
+            $table->date('attendance_date');
+            $table->enum('status', ['present', 'absent'])->default('absent');
+            $table->timestamp('marked_at')->nullable();
+            $table->timestamps();
+            $table->unique(['student_id', 'unit_id', 'attendance_date']);
         });
     }
 

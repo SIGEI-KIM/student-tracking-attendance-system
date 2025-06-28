@@ -23,7 +23,8 @@ class Schedule extends Model
      */
     protected $casts = [
         'start_time' => 'datetime',
-        'end_time' => 'datetime',  
+        'end_time' => 'datetime',
+        'day_of_week_numeric' => 'integer',  
     ];
 
     public function unit()

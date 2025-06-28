@@ -37,13 +37,14 @@
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Level
                                         </th>
-                                        {{-- ADD THIS SEMESTER HEADER --}}
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Semester
                                         </th>
-                                        {{-- END ADDITION --}}
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Lecturers
+                                        </th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            Schedule
                                         </th>
                                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                             Actions
@@ -65,11 +66,9 @@
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {{ $unit->level->name ?? 'N/A' }}
                                             </td>
-                                            {{-- ADD THIS SEMESTER DATA CELL --}}
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {{ $unit->semester->name ?? 'N/A' }}
                                             </td>
-                                            {{-- END ADDITION --}}
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 @forelse ($unit->lecturers as $lecturer)
                                                     {{ $lecturer->name }}{{ !$loop->last ? ',' : '' }}
@@ -77,9 +76,23 @@
                                                     No Lecturers
                                                 @endforelse
                                             </td>
+                                            <td class="px-6 py-4 text-sm text-gray-500">
+                                                @forelse ($unit->schedules as $schedule)
+                                                    <span class="block">
+                                                        @if (isset($schedule->day_of_week_numeric))
+                                                            {{-- More robust way to get day name using Carbon --}}
+                                                            {{ \Carbon\Carbon::parse("Sunday")->addDays($schedule->day_of_week_numeric)->format('l') }}:
+                                                            {{ $schedule->start_time->format('H:i') }} - {{ $schedule->end_time->format('H:i') }}
+                                                        @else
+                                                            Invalid Day
+                                                        @endif
+                                                    </span>
+                                                @empty
+                                                    <span class="text-gray-400">No schedule set</span>
+                                                @endforelse
+                                            </td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <a href="{{ route('admin.units.edit', $unit->id) }}" class="text-indigo-600 hover:text-indigo-900 mr-3 transition duration-150 ease-in-out">Edit</a>
-                                                {{-- MODIFIED DELETE FORM --}}
                                                 <form action="{{ route('admin.units.destroy', $unit->id) }}" method="POST" class="inline-block delete-form">
                                                     @csrf
                                                     @method('DELETE')

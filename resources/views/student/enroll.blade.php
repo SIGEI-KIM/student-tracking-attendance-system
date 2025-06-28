@@ -55,9 +55,6 @@
                             @enderror
                         </div>
 
-                        {{-- REMOVED: Academic Level Selection --}}
-                        {{-- The level will now be assigned automatically to Year 1, Semester 1 --}}
-
                         <div class="flex items-center justify-end mt-4">
                             <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md shadow-md transition duration-150 ease-in-out">
                                 Enroll

@@ -40,23 +40,49 @@
                     @else
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"> {{-- Responsive grid columns and gap --}}
                             @foreach($units as $unit)
-                                <div class="bg-white border border-gray-200 rounded-lg shadow-md p-5 sm:p-6 transform transition duration-300 hover:shadow-xl hover:-translate-y-1.5 relative overflow-hidden"> {{-- Increased hover effect, responsive padding --}}
-                                    <div class="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-t-lg"></div> {{-- Darker gradient --}}
-                                    <h4 class="text-lg sm:text-xl font-bold text-gray-900 mb-2">{{ $unit->name }}</h4> {{-- Responsive font size --}}
-                                    <p class="text-gray-700 text-sm mb-1">Code: <span class="font-semibold">{{ $unit->code }}</span></p> {{-- Darker text --}}
+                                {{-- ENHANCED CARD STYLING --}}
+                                <div class="bg-white border border-gray-200 rounded-xl shadow-lg p-5 sm:p-6 transform transition duration-300 hover:scale-103 hover:shadow-2xl relative overflow-hidden flex flex-col justify-between">
+                                    {{-- Top Border Gradient --}}
+                                    <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-t-xl"></div>
 
-                                    @if($unit->course)
-                                        <p class="text-gray-700 text-sm mb-1">Course: <span class="font-semibold text-blue-800">{{ $unit->course->name }}</span></p>
-                                    @endif
-                                    @if($unit->level)
-                                        <p class="text-gray-700 text-sm mb-3 sm:mb-4">Level: <span class="font-semibold text-green-800">{{ $unit->level->name }}</span></p>
-                                    @endif
+                                    <div>
+                                        <h4 class="text-xl sm:text-2xl font-extrabold text-gray-900 mb-2 mt-2">
+                                            {{ $unit->name }}
+                                        </h4>
+                                        <p class="text-gray-700 text-sm mb-1">Code: <span class="font-semibold text-gray-800">{{ $unit->code }}</span></p>
 
-                                    <a href="{{ route('lecturer.attendance.unit.view', ['unit' => $unit->id]) }}"
-                                       class="inline-flex items-center bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-2 px-4 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105 text-sm"> {{-- Larger shadow, scale effect, rounded-full --}}
-                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12l-3 3m0 0l-3-3m3 3V2.25M2.25 9v12a2.25 2.25 0 002.25 2.25h15a2.25 2.25 0 002.25-2.25V9M2.25 9h19.5" /></svg>
-                                        View Attendances
-                                    </a>
+                                        @if($unit->course)
+                                            <p class="text-gray-700 text-sm mb-1">Course: <span class="font-semibold text-blue-700">{{ $unit->course->name }}</span></p>
+                                        @endif
+                                        @if($unit->level)
+                                            <p class="text-gray-700 text-sm mb-3">Level: <span class="font-semibold text-green-700">{{ $unit->level->name }}</span></p>
+                                        @endif
+
+                                        {{-- SCHEDULE SECTION --}}
+                                        <p class="text-gray-700 text-sm font-semibold mb-2 mt-4">Class Schedule:</p>
+                                        @if($unit->schedules->isNotEmpty())
+                                            <div class="space-y-1"> {{-- Added space between schedule entries --}}
+                                                @foreach($unit->schedules as $schedule)
+                                                    <span class="flex items-center text-xs font-medium text-purple-700 bg-purple-100 rounded-full px-3 py-1 shadow-sm w-fit">
+                                                        <svg class="w-3 h-3 mr-1.5 text-purple-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path></svg>
+                                                        {{ \Carbon\Carbon::create()->dayOfWeek($schedule->day_of_week_numeric)->format('l') }}:
+                                                        <span class="ml-1 font-bold">{{ \Carbon\Carbon::parse($schedule->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($schedule->end_time)->format('H:i') }}</span>
+                                                    </span>
+                                                @endforeach
+                                            </div>
+                                        @else
+                                            <p class="text-gray-600 text-xs italic">No schedule defined.</p>
+                                        @endif
+                                    </div>
+
+                                    {{-- View Attendances Button --}}
+                                    <div class="mt-6 text-center"> {{-- Centered and more top margin --}}
+                                        <a href="{{ route('lecturer.attendance.unit.view', ['unit' => $unit->id]) }}"
+                                           class="inline-flex items-center justify-center bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-6 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12l-3 3m0 0l-3-3m3 3V2.25M2.25 9v12a2.25 2.25 0 002.25 2.25h15a2.25 2.25 0 002.25-2.25V9M2.25 9h19.5" /></svg>
+                                            View Attendances
+                                        </a>
+                                    </div>
                                 </div>
                             @endforeach
                         </div>
@@ -71,9 +97,20 @@
                     </h3>
                     <div class="bg-gray-100 p-5 sm:p-6 rounded-xl shadow-inner border border-gray-200"> {{-- Lighter background, inner shadow --}}
                         @foreach($todayAttendances as $unitId => $attendances)
-                            @php $unit = $units->firstWhere('id', $unitId); @endphp
+                            @php
+                                $unit = $units->firstWhere('id', $unitId);
+                                $todayNumeric = \Carbon\Carbon::now()->dayOfWeek;
+                                $todaysSchedule = $unit->schedules->firstWhere('day_of_week_numeric', $todayNumeric);
+                            @endphp
                             <div class="mb-5 sm:mb-6 border-b border-gray-300 pb-4 last:border-b-0"> {{-- Darker border --}}
-                                <h4 class="font-semibold text-md sm:text-lg mb-3 text-gray-900">{{ $unit->name }} ({{ $unit->code }})</h4> {{-- Responsive font size --}}
+                                <h4 class="font-semibold text-md sm:text-lg mb-3 text-gray-900">
+                                    {{ $unit->name }} ({{ $unit->code }})
+                                    @if($todaysSchedule)
+                                        <span class="text-sm font-normal text-gray-600">
+                                            ({{ \Carbon\Carbon::parse($todaysSchedule->start_time)->format('H:i') }} - {{ \Carbon\Carbon::parse($todaysSchedule->end_time)->format('H:i') }})
+                                        </span>
+                                    @endif
+                                </h4>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4"> {{-- More responsive grid columns --}}
                                     @foreach($attendances as $attendance)
                                         <div class="bg-white p-3 sm:p-4 rounded-lg border shadow-sm flex flex-col justify-between
@@ -81,7 +118,7 @@
                                                ($attendance->status === 'late' ? 'border-yellow-300 bg-yellow-50' :
                                                'border-red-300 bg-red-50') }}"> {{-- Slightly darker borders for status --}}
                                             <div>
-                                                <p class="font-medium text-gray-800 text-sm sm:text-base truncate">{{ $attendance->student->name }}</p> {{-- Truncate long names --}}
+                                                <p class="font-medium text-gray-800 text-sm sm:text-base truncate">{{ $attendance->student->user->name ?? 'N/A' }}</p>
                                                 <p class="text-xs sm:text-sm capitalize text-gray-600">Status: <span class="font-semibold">{{ $attendance->status }}</span></p>
                                             </div>
                                             <p class="text-xs text-gray-500 mt-2">Marked At: {{ $attendance->marked_at->format('h:i A') }}</p>

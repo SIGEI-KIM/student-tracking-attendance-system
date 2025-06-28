@@ -58,9 +58,6 @@ class Student extends Model
      */
     public function currentEnrollment(): ?Course
     {
-        // For simplicity, we'll return the first course enrollment found.
-        // In a more complex scenario, you might have an 'is_current' flag on
-        // the pivot table, or derive the current enrollment based on dates.
         return $this->courses()->withPivot('level_id', 'semester_id')->first();
     }
     public function attendances()

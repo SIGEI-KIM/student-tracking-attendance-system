@@ -81,6 +81,8 @@
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Level</th>
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Semester</th>
                                             <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Lecturers</th>
+                                            {{-- ADDED: New table header for Schedule --}}
+                                            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Schedule</th>
                                         </tr>
                                     </thead>
                                     <tbody class="bg-white divide-y divide-gray-200">
@@ -96,6 +98,19 @@
                                                         {{ $lecturer->name }}{{ !$loop->last ? ', ' : '' }}
                                                     @empty
                                                         N/A
+                                                    @endforelse
+                                                </td>
+                                                {{-- ADDED: New table data cell for Schedule --}}
+                                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                                    @forelse($unit->schedules as $schedule)
+                                                        {{ \Carbon\Carbon::parse("Sunday")->addDays($schedule->day_of_week_numeric)->format('l') }}:
+                                                        {{ \Carbon\Carbon::parse($schedule->start_time)->format('h:i A') }} -
+                                                        {{ \Carbon\Carbon::parse($schedule->end_time)->format('h:i A') }}
+                                                        @if (!$loop->last)
+                                                            <br> {{-- Add a line break if there are multiple schedules --}}
+                                                        @endif
+                                                    @empty
+                                                        No Schedule
                                                     @endforelse
                                                 </td>
                                             </tr>

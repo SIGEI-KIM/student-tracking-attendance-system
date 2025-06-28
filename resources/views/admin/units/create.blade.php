@@ -1,4 +1,5 @@
-@extends('layouts.admin')
+{{-- resources/views/admin/units/create.blade.php --}}
+@extends('layouts.admin') {{-- Use your specific admin layout --}}
 
 @section('content')
     <div class="py-12">
@@ -20,6 +21,7 @@
                     <form action="{{ route('admin.units.store') }}" method="POST">
                         @csrf
 
+                        {{-- Unit Name --}}
                         <div class="mb-4">
                             <label for="name" class="block text-sm font-medium text-gray-700">Unit Name</label>
                             <input type="text" name="name" id="name"
@@ -30,6 +32,7 @@
                             @enderror
                         </div>
 
+                        {{-- Unit Code --}}
                         <div class="mb-4">
                             <label for="code" class="block text-sm font-medium text-gray-700">Unit Code</label>
                             <input type="text" name="code" id="code"
@@ -40,6 +43,7 @@
                             @enderror
                         </div>
 
+                        {{-- Course --}}
                         <div class="mb-4">
                             <label for="course_id" class="block text-sm font-medium text-gray-700">Course</label>
                             <select name="course_id" id="course_id"
@@ -56,6 +60,7 @@
                             @enderror
                         </div>
 
+                        {{-- Level --}}
                         <div class="mb-4">
                             <label for="level_id" class="block text-sm font-medium text-gray-700">Level</label>
                             <select name="level_id" id="level_id"
@@ -72,7 +77,7 @@
                             @enderror
                         </div>
 
-                        {{-- ADD THIS SEMESTER DROPDOWN FIELD --}}
+                        {{-- Semester --}}
                         <div class="mb-4">
                             <label for="semester_id" class="block text-sm font-medium text-gray-700">Semester</label>
                             <select name="semester_id" id="semester_id"
@@ -88,9 +93,8 @@
                                 <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
                             @enderror
                         </div>
-                        {{-- END ADDITION --}}
 
-
+                        {{-- Assign Lecturers --}}
                         <div class="mb-4">
                             <label for="lecturers" class="block text-sm font-medium text-gray-700">Assign Lecturers</label>
                             <select name="lecturers[]" id="lecturers" multiple
@@ -109,8 +113,26 @@
                             @enderror
                         </div>
 
-                        <div class="flex items-center justify-end mt-4">
-                            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
+                        <hr class="my-6 border-gray-200">
+
+                        {{-- Unit Schedules Section --}}
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Unit Schedules</h3>
+                        <div id="schedule-container">
+                            {{-- Initial schedule entry or old input --}}
+                            @if(old('schedules'))
+                                @foreach(old('schedules') as $key => $oldSchedule)
+                                    @include('admin.units._schedule_fields', ['index' => $key, 'oldSchedule' => $oldSchedule, 'daysOfWeek' => $daysOfWeek])
+                                @endforeach
+                            @else
+                                @include('admin.units._schedule_fields', ['index' => 0, 'daysOfWeek' => $daysOfWeek])
+                            @endif
+                        </div>
+                        <button type="button" id="add-schedule" class="bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-md shadow-md focus:outline-none focus:ring transition duration-150 ease-in-out">
+                            Add Another Schedule
+                        </button>
+
+                        <div class="flex items-center justify-end mt-6">
+                            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:shadow-outline transition duration-150 ease-in-out">
                                 Create Unit
                             </button>
                             <a href="{{ route('admin.units.index') }}" class="ml-4 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-150 ease-in-out">
@@ -123,3 +145,54 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    let scheduleIndex = {{ old('schedules') ? count(old('schedules')) : 1 }}; // Start index for new schedules
+
+    document.getElementById('add-schedule').addEventListener('click', function () {
+        const container = document.getElementById('schedule-container');
+        const newScheduleHtml = `
+            <div class="schedule-entry border border-gray-300 p-4 mb-4 rounded-md bg-gray-50 relative">
+                <button type="button" class="absolute top-2 right-2 text-red-600 hover:text-red-800 text-xl font-bold remove-schedule" title="Remove Schedule">&times;</button>
+                <div class="mb-4">
+                    <label for="schedules_${scheduleIndex}_day_of_week_numeric" class="block text-sm font-medium text-gray-700">Day of Week</label>
+                    <select name="schedules[${scheduleIndex}][day_of_week_numeric]" id="schedules_${scheduleIndex}_day_of_week_numeric" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                        <option value="">-- Select Day --</option>
+                        @foreach($daysOfWeek as $numeric => $dayName)
+                            <option value="{{ $numeric }}">{{ $dayName }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="schedules_${scheduleIndex}_start_time" class="block text-sm font-medium text-gray-700">Start Time</label>
+                    <input type="time" name="schedules[${scheduleIndex}][start_time]" id="schedules_${scheduleIndex}_start_time" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                </div>
+                <div class="mb-0"> {{-- Use mb-0 for the last element in the group --}}
+                    <label for="schedules_${scheduleIndex}_end_time" class="block text-sm font-medium text-gray-700">End Time</label>
+                    <input type="time" name="schedules[${scheduleIndex}][end_time]" id="schedules_${scheduleIndex}_end_time" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50" required>
+                </div>
+            </div>
+        `;
+        container.insertAdjacentHTML('beforeend', newScheduleHtml);
+        scheduleIndex++;
+    });
+
+    // Event delegation for remove buttons
+    document.getElementById('schedule-container').addEventListener('click', function(event) {
+        if (event.target.classList.contains('remove-schedule')) {
+            const entryToRemove = event.target.closest('.schedule-entry');
+            if (entryToRemove) {
+                // Ensure at least one schedule entry remains
+                if (document.querySelectorAll('.schedule-entry').length > 1) {
+                    entryToRemove.remove();
+                } else {
+                    alert("You must have at least one schedule entry for the unit.");
+                }
+            }
+        }
+    });
+});
+</script>
+@endpush

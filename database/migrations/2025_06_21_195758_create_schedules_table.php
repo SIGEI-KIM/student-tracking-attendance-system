@@ -20,7 +20,6 @@ public function up(): void
         $table->time('end_time');
         $table->timestamps();
 
-        // Add a unique constraint to prevent duplicate schedules for the same unit on the same day
         $table->unique(['unit_id', 'day_of_week_numeric']);
     });
 }

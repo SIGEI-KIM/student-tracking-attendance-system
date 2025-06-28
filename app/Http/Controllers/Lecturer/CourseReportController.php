@@ -1,15 +1,13 @@
 <?php
 
-// app/Http/Controllers/Lecturer/CourseReportController.php
-
 namespace App\Http\Controllers\Lecturer;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Course;
 use App\Models\Unit;
-use App\Models\CourseReportSubmission; // Make sure to import
-use Illuminate\Support\Facades\Storage; // For file storage
+use App\Models\CourseReportSubmission; 
+use Illuminate\Support\Facades\Storage; 
 
 class CourseReportController extends Controller
 {
@@ -35,8 +33,8 @@ class CourseReportController extends Controller
     {
         $request->validate([
             'course_id' => 'required|exists:courses,id',
-            'unit_id' => 'nullable|exists:units,id', // Make nullable if not always required
-            'report_file' => 'required|file|mimes:pdf|max:10240', // Max 10MB PDF
+            'unit_id' => 'nullable|exists:units,id', 
+            'report_file' => 'required|file|mimes:pdf|max:10240',
             'remarks' => 'nullable|string|max:1000',
         ]);
 
@@ -55,12 +53,6 @@ class CourseReportController extends Controller
             'remarks' => $request->remarks,
             'submitted_at' => now(),
         ]);
-
-        // --- Optional: Send email to Admin ---
-        // You would typically set up a Mail notification here
-        // For example:
-        // Mail::to('admin@example.com')->send(new NewCourseReportSubmitted($submission));
-        // Make sure to configure your mail driver in .env
 
         return redirect()->route('lecturer.dashboard')->with('success', 'Course report submitted successfully!');
     }

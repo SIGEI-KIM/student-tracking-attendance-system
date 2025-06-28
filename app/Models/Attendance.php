@@ -16,6 +16,8 @@ class Attendance extends Model
         'status',
         'marked_at',
         'student_id',
+        'attendance_code_id', 
+        'lecturer_id', 
     ];
 
     protected $casts = [
@@ -37,5 +39,15 @@ class Attendance extends Model
     public function student()
     {
         return $this->belongsTo(Student::class);
+    }
+
+    public function attendanceCode(): BelongsTo 
+    {
+        return $this->belongsTo(AttendanceCode::class);
+    }
+
+    public function lecturer(): BelongsTo 
+    {
+        return $this->belongsTo(User::class, 'lecturer_id');
     }
 }

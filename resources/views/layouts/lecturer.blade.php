@@ -10,7 +10,14 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
 
+    {{-- SweetAlert2 CSS --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    {{-- !!! ADD THIS LINE FOR THE BLINKING CSS !!! --}}
+    @stack('styles')
+
 </head>
 <body class="font-sans antialiased bg-gray-100">
     <div class="min-h-screen">
@@ -28,11 +35,9 @@
                             <x-nav-link :href="route('lecturer.dashboard')" :active="request()->routeIs('lecturer.dashboard')">
                                 {{ __('Dashboard') }}
                             </x-nav-link>
-                            {{-- ADD lg:hidden HERE for Reports --}}
                             <x-nav-link :href="route('lecturer.reports.index')" :active="request()->routeIs('lecturer.reports.*')" class="lg:hidden">
                                 {{ __('Reports') }}
                             </x-nav-link>
-                            {{-- ADD lg:hidden HERE for Take Attendance --}}
                             <x-nav-link :href="route('lecturer.attendance.index')" :active="request()->routeIs('lecturer.attendance.*')" class="lg:hidden">
                                 {{ __('Take Attendance') }}
                             </x-nav-link>
@@ -85,7 +90,6 @@
                     <x-responsive-nav-link :href="route('lecturer.dashboard')" :active="request()->routeIs('lecturer.dashboard')">
                         {{ __('Dashboard') }}
                     </x-responsive-nav-link>
-                    {{-- These are in the mobile menu, so they should always be visible when mobile menu is open --}}
                     <x-responsive-nav-link :href="route('lecturer.attendance.index')" :active="request()->routeIs('lecturer.attendance.*')">
                         {{ __('Attendance') }}
                     </x-responsive-nav-link>
@@ -113,27 +117,70 @@
                                 {{ __('Log Out') }}
                             </x-responsive-nav-link>
                         </form>
-                    </div
+                    </div>
                 </div>
             </div>
         </nav>
 
-        @hasSection('header') {{-- Check if the 'header' section is defined in the child view --}}
+        @hasSection('header')
             <header class="bg-white dark:bg-gray-800 shadow">
                 <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                    @yield('header') {{-- Render the 'header' section content here --}}
+                    @yield('header')
                 </div>
             </header>
         @endif
 
-        {{-- Main Flex Container for Sidebar + Content --}}
         <div class="flex">
-            @include('lecturer.layouts.sidebar') {{-- The sidebar partial --}}
+            @include('lecturer.layouts.sidebar')
 
             <main class="flex-1 p-8 ml-64">
-                @yield('content') {{-- All your page-specific content will be rendered here --}}
+                @yield('content')
             </main>
         </div>
     </div>
+
+    {{-- SweetAlert2 JS --}}
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    {{-- Custom SweetAlert script to show session messages --}}
+    @if (session('success'))
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: '{{ session('success') }}',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            })
+        </script>
+    @endif
+    @if (session('error'))
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: '{{ session('error') }}',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            })
+        </script>
+    @endif
+
+    @stack('scripts')
+
 </body>
 </html>

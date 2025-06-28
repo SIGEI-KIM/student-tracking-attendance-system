@@ -46,7 +46,7 @@ class UnitCatalogController extends Controller // THIS IS CRUCIAL: Must match th
         }
 
         // Eager load all necessary relationships including 'lecturers' (plural for many-to-many)
-        $units = $query->with(['course', 'level', 'semester', 'lecturers'])
+        $units = $query->with(['course', 'level', 'semester', 'lecturers', 'schedules']) // Add 'schedules' here
                        ->latest()
                        ->get();
 

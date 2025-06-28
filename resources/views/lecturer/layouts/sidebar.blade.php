@@ -24,6 +24,20 @@
                     <span class="ml-3">Attendance Records</span>
                 </a>
             </li>
+
+            <li>
+                <a href="{{ route('lecturer.attendance.create') }}"
+                   class="flex items-center p-2 text-base font-normal rounded-lg group
+                          {{ Request::routeIs('lecturer.attendance.create') ? 'bg-gray-700 text-white' : 'text-gray-200 hover:bg-gray-700' }}
+                          transition-colors duration-300 ease-in-out">
+                    <svg class="w-6 h-6 text-gray-400 transition duration-75 group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM5.3 8.3c-.4-.4-1-.4-1.4 0s-.4 1 0 1.4L8.5 12l-4.6 4.6c-.4.4-.4 1 0 1.4s1 .4 1.4 0L10 13.4l4.6 4.6c.4.4 1 .4 1.4 0s.4-1 0-1.4L11.5 12l4.6-4.6c.4-.4.4-1 0-1.4s-1-.4-1.4 0L10 10.6l-4.7-4.7z" clip-rule="evenodd"/>
+                        <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v7a1 1 0 11-2 0V3a1 1 0 011-1z" clip-rule="evenodd"/>
+                    </svg>
+                    <span class="ml-3">Generate Attendance Code</span>
+                </a>
+            </li>
+
             <li>
                 <a href="{{ route('lecturer.reports.index') }}"
                    class="flex items-center p-2 text-base font-normal rounded-lg group
@@ -41,11 +55,22 @@
                    class="flex items-center p-2 text-base font-normal rounded-lg group
                           {{ Request::routeIs('lecturer.report_submission.*') ? 'bg-gray-700 text-white' : 'text-gray-200 hover:bg-gray-700' }}
                           transition-colors duration-300 ease-in-out">
-                    {{-- Icon for report submission (e.g., upload/document icon) --}}
                     <svg class="w-6 h-6 text-gray-400 transition duration-75 group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 8h6m-5 0h.01M12 3v2.25A2.25 2.25 0 0014.25 7h2.25M21 12v7.5A2.25 2.25 0 0118.75 22H5.25A2.25 2.25 0 013 19.5V4.5A2.25 2.25 0 015.25 2.25H9M13.5 12a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5z"></path>
                     </svg>
                     <span class="ml-3">Submit Course Report</span>
+                </a>
+            </li>
+            <li>
+                <a href="{{ route('lecturer.announcements.index') }}"
+                   class="flex items-center p-2 text-base font-normal rounded-lg group
+                          {{ Request::routeIs('lecturer.announcements.*') ? 'bg-gray-700 text-white' : 'text-gray-200 hover:bg-gray-700' }}
+                          transition-colors duration-300 ease-in-out">
+                    <svg class="w-6 h-6 text-gray-400 transition duration-75 group-hover:text-white" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.76-1.39A6.46 6.46 0 005.166 13H4a2 2 0 00-2 2v2a2 2 0 002 2h.138A9.774 9.774 0 0010 20a9.998 9.998 0 009-10h-1zm-6.9-4a1 1 0 00-2 0v2a1 1 0 002 0V6z" clip-rule="evenodd"></path>
+                        <path d="M16.53 9.776a.999.999 0 00-.7-.417H15V6a3 3 0 00-3-3V2a1 1 0 00-2 0v1a3 3 0 00-3 3v3.359h-.832a.999.999 0 00-.702.417 1 1 0 00.146 1.487l.088.088A5.474 5.474 0 0010 13a5.474 5.474 0 003.882-1.55l.088-.088a1 1 0 00.146-1.487z"></path>
+                    </svg>
+                    <span class="ml-3">Announcements</span>
                 </a>
             </li>
         </ul>

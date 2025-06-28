@@ -20,6 +20,21 @@
             padding-bottom: 15px;
             border-bottom: 2px solid #eee;
         }
+        .header img { /* Style for the logo */
+            max-width: 150px; /* Adjust as needed */
+            height: auto;
+            margin-bottom: 15px;
+            /* ADDED: Rounded corners styling */
+            border-radius: 10px; /* Adjust this value for more or less rounding */
+            /* If you want a perfectly circular logo, make width and height equal and set border-radius: 50%; */
+            /* Example for perfectly circular if width/height are the same: */
+            /* width: 100px; */
+            /* height: 100px; */
+            /* border-radius: 50%; */
+            /* object-fit: cover; /* Useful for circular to prevent image stretching */
+            /* You can also add a border if you like */
+            /* border: 1px solid #ddd; */
+        }
         .header h1 {
             margin: 0;
             font-size: 24pt;
@@ -95,10 +110,12 @@
 </head>
 <body>
     <div class="header">
+        <img src="{{ public_path('images/university_logo.png') }}" alt="University Logo">
         <h1>Attendance Report</h1>
         <p><strong>Unit:</strong> {{ $unit->name }} ({{ $unit->code }})</p>
         <p><strong>Course:</strong> {{ $unit->course->name }}</p>
         <p><strong>Level:</strong> {{ $unit->level->name ?? 'N/A' }}</p>
+        <p><strong>Lecturer:</strong> {{ $lecturer->user->name ?? 'N/A' }}</p>
         <p><strong>Report Period:</strong> {{ $startDate->format('d M, Y') }} - {{ $endDate->format('d M, Y') }}</p>
     </div>
 
@@ -123,15 +140,21 @@
                         @php
                             $status = $studentRecord['presence'][$date] ?? 'N/A';
                             $class = '';
-                            if ($status === 'Present') {
+                            if (strtolower($status) === 'present') {
                                 $class = 'present';
-                            } elseif ($status === 'Absent') {
-                                $class = 'absent';
+                            } elseif (strtolower($status) === 'absent') {
+                                try { // Add try-catch for robustness in case of unexpected status
+                                    $class = 'absent';
+                                } catch (\Throwable $th) {
+                                    $class = 'na'; // Fallback
+                                }
+                            } elseif (strtolower($status) === 'late') {
+                                $class = 'late';
                             } else {
                                 $class = 'na';
                             }
                         @endphp
-                        <td class="{{ $class }}">{{ $status }}</td>
+                        <td class="{{ $class }}">{{ ucfirst($status) }}</td>
                     @endforeach
                 </tr>
             @empty

@@ -12,12 +12,17 @@ class DashboardController extends Controller
     public function index()
     {
         $lecturer = auth()->user()->lecturer;
-        $units = $lecturer->units()->with('course', 'level')->get();
-        
+        $units = $lecturer->units()
+                          ->with(['course', 'level', 'schedules']) 
+                          ->get();
+
+        // Get the IDs of units taught by this lecturer
+        $unitIds = $units->pluck('id');
+
         // Today's attendance for units taught by this lecturer
-        $todayAttendances = Attendance::whereIn('unit_id', $units->pluck('id'))
-            ->whereDate('attendance_date', Carbon::today()) // <--- CORRECTED
-            ->with('student', 'unit')
+        $todayAttendances = Attendance::whereIn('unit_id', $unitIds)
+            ->whereDate('attendance_date', Carbon::today())
+            ->with(['student.user', 'unit.schedules']) 
             ->get()
             ->groupBy('unit_id');
 
@@ -29,9 +34,6 @@ class DashboardController extends Controller
         $lecturer = auth()->user()->lecturer;
         $units = $lecturer->units()
             ->with(['course', 'level', 'attendances' => function($query) {
-                // If you intend to order the attendances within the eager load
-                // by date, then this also needs correction.
-                // Assuming it's meant to be `attendance_date` here too.
                 $query->orderBy('attendance_date', 'desc')->take(5); // <--- Potentially CORRECTED (depends on your DB)
             }])
             ->get();
@@ -39,7 +41,7 @@ class DashboardController extends Controller
         // Recent attendances across all units
         $recentAttendances = Attendance::whereIn('unit_id', $units->pluck('id'))
             ->with(['student', 'unit'])
-            ->latest('attendance_date') // <--- CORRECTED - specify the column for latest
+            ->latest('attendance_date') 
             ->take(20)
             ->get();
 
@@ -57,7 +59,7 @@ class DashboardController extends Controller
 
         $attendances = Attendance::where('unit_id', $unit->id)
             ->with('student')
-            ->orderBy('attendance_date', 'desc') // <--- CORRECTED
+            ->orderBy('attendance_date', 'desc') 
             ->paginate(20);
 
         return view('lecturer.unit-attendances', compact('unit', 'attendances'));
