@@ -27,7 +27,7 @@
                     <div class="flex">
                         <div class="shrink-0 flex items-center">
                             <a href="{{ route(auth()->user()->isAdmin() ? 'admin.dashboard' : (auth()->user()->isLecturer() ? 'lecturer.dashboard' : 'student.dashboard')) }}">
-                                <x-application-logo class="block h-9 w-auto fill-current text-white" /> 
+                                <!-- <x-application-logo class="block h-9 w-auto fill-current text-white" />  -->
                             </a>
                         </div>
 
