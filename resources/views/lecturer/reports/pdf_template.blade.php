@@ -87,10 +87,28 @@
             color: #6c757d; /* Grey */
             font-style: italic;
         }
+        .late { /* Added late status color if you use it in your data */
+            color: #007bff; /* Blue */
+            font-weight: bold;
+        }
 
         /* Alternating row colors */
         tbody tr:nth-child(even) {
             background-color: #f9f9f9;
+        }
+
+        /* NEW: Styles for percentage display */
+        .percentage-good {
+            color: #28a745; /* Green */
+            font-weight: bold;
+        }
+        .percentage-warning {
+            color: #ffc107; /* Orange/Yellow */
+            font-weight: bold;
+        }
+        .percentage-bad {
+            color: #dc3545; /* Red */
+            font-weight: bold;
         }
 
         /* Footer */
@@ -115,6 +133,7 @@
         <p><strong>Unit:</strong> {{ $unit->name }} ({{ $unit->code }})</p>
         <p><strong>Course:</strong> {{ $unit->course->name }}</p>
         <p><strong>Level:</strong> {{ $unit->level->name ?? 'N/A' }}</p>
+        {{-- CORRECTED LINE: Access lecturer name directly from $user --}}
         <p><strong>Lecturer:</strong> {{ $user->name ?? 'N/A' }}</p>
         <p><strong>Report Period:</strong> {{ $startDate->format('d M, Y') }} - {{ $endDate->format('d M, Y') }}</p>
     </div>
@@ -126,8 +145,11 @@
                 <th style="width: 25%;">Student Name</th>
                 <th style="width: 15%;">Reg. Number</th>
                 @foreach($reportDates as $date)
-                    <th style="width: {{ 55 / count($reportDates) }}%;">{{ \Carbon\Carbon::parse($date)->format('D, M d') }}</th>
+                    {{-- Adjusted width for date columns to accommodate new percentage column --}}
+                    <th style="width: {{ (50 / count($reportDates)) }}%;">{{ \Carbon\Carbon::parse($date)->format('D, M d') }}</th>
                 @endforeach
+                {{-- NEW: Add Percentage column header --}}
+                <th style="width: 15%;">Percentage</th>
             </tr>
         </thead>
         <tbody>
@@ -143,23 +165,31 @@
                             if (strtolower($status) === 'present') {
                                 $class = 'present';
                             } elseif (strtolower($status) === 'absent') {
-                                try { // Add try-catch for robustness in case of unexpected status
-                                    $class = 'absent';
-                                } catch (\Throwable $th) {
-                                    $class = 'na'; // Fallback
-                                }
-                            } elseif (strtolower($status) === 'late') {
+                                $class = 'absent';
+                            } elseif (strtolower($status) === 'late') { // Make sure 'late' is handled consistently
                                 $class = 'late';
                             } else {
-                                $class = 'na';
+                                $class = 'na'; // For any other unexpected status
                             }
                         @endphp
                         <td class="{{ $class }}">{{ ucfirst($status) }}</td>
                     @endforeach
+                    {{-- NEW: Display Percentage with conditional styling --}}
+                    @php
+                        $percentage = $studentRecord['percentage'];
+                        $percentageClass = 'percentage-bad'; // Default to bad
+                        if ($percentage >= 85) {
+                            $percentageClass = 'percentage-good';
+                        } elseif ($percentage >= 70) { // Example: Warning for 70-84%
+                            $percentageClass = 'percentage-warning';
+                        }
+                    @endphp
+                    <td class="{{ $percentageClass }}">{{ $percentage }}%</td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="{{ 3 + count($reportDates) }}" style="text-align: center; padding: 20px;">
+                    {{-- Adjusted colspan for the "No data" message --}}
+                    <td colspan="{{ 3 + count($reportDates) + 1 }}" style="text-align: center; padding: 20px;">
                         No student data found for this unit and period.
                     </td>
                 </tr>

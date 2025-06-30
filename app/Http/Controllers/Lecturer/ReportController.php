@@ -8,7 +8,7 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use App\Models\Unit;
 use App\Models\User;
-use App\Models\Student; // ADD THIS LINE
+use App\Models\Student;
 use App\Models\Attendance;
 use App\Enums\Role;
 use Illuminate\Support\Facades\Auth;
@@ -18,12 +18,11 @@ class ReportController extends Controller
     /**
      * Show the form to generate PDF reports.
      */
-    public function index()
+    public function index() 
     {
         $user = Auth::user();
 
         $units = $user->units()->with('course')->get();
-
         $totalUnits = $units->count();
         $totalAttendanceRecords = 0;
 
@@ -40,7 +39,6 @@ class ReportController extends Controller
      */
     public function generateUnitReportPdf(Request $request)
     {
-        // 1. Validate incoming request
         $request->validate([
             'unit_id' => 'required|exists:units,id',
             'start_date' => 'nullable|date',
@@ -49,16 +47,12 @@ class ReportController extends Controller
 
         $unitId = $request->input('unit_id');
 
-        $startDate = $request->input('start_date') ? Carbon::parse($request->input('start_date')) : Carbon::now()->subWeek();
-        $endDate = $request->input('end_date') ? Carbon::parse($request->input('end_date')) : Carbon::now();
+        $startDate = $request->input('start_date') ? Carbon::parse($request->input('start_date')) : Carbon::now()->startOfWeek(Carbon::MONDAY);
+        $endDate = $request->input('end_date') ? Carbon::parse($request->input('end_date')) : Carbon::now()->endOfWeek(Carbon::SUNDAY);
         $endDate->endOfDay();
 
-        // 2. Get the authenticated user (lecturer)
         $user = Auth::user();
-
-        // 3. Verify the lecturer (user) is assigned to this unit (security check)
         $unit = Unit::with('course', 'level', 'schedules')->findOrFail($unitId);
-
         $isAssignedToUnit = $user->units()->where('units.id', $unitId)->exists();
 
         if (!$isAssignedToUnit) {
@@ -66,7 +60,6 @@ class ReportController extends Controller
         }
         $scheduledDaysOfWeek = $unit->schedules->pluck('day_of_week_numeric')->toArray();
 
-        // 4. Fetch students relevant to this unit and their attendance records within the date range
         $students = Student::whereHas('courses', function ($query) use ($unit) {
                 $query->where('courses.id', $unit->course_id);
                 if ($unit->level_id) {
@@ -83,7 +76,6 @@ class ReportController extends Controller
             ->select('students.*')
             ->get();
 
-        // 5. Prepare data for the report table
         $reportData = [];
         $reportDates = [];
 
@@ -95,25 +87,41 @@ class ReportController extends Controller
             $currentDate->addDay();
         }
 
+        $totalScheduledClasses = count($reportDates);
+
         foreach ($students as $student) {
             $presence = [];
+            $classesAttended = 0;
+
             $studentAttendancesMap = $student->attendances->keyBy(function($attendance) {
                 return $attendance->attendance_date->toDateString();
             });
 
             foreach ($reportDates as $dateString) {
                 $attendanceRecord = $studentAttendancesMap->get($dateString);
-                $presence[$dateString] = $attendanceRecord ? $attendanceRecord->status : 'Absent';
+                $status = $attendanceRecord ? $attendanceRecord->status : 'Absent';
+                $presence[$dateString] = $status;
+
+                if (strtolower($status) === 'present' || strtolower($status) === 'late') {
+                    $classesAttended++;
+                }
+            }
+
+            $attendancePercentage = 0;
+            if ($totalScheduledClasses > 0) {
+                $attendancePercentage = ($classesAttended / $totalScheduledClasses) * 100;
             }
 
             $reportData[] = [
                 'name' => $student->user->name,
                 'registration_number' => $student->registration_number ?? $student->reg_number,
                 'presence' => $presence,
+                'percentage' => round($attendancePercentage, 2),
+                'attended_count' => $classesAttended,
+                'total_scheduled_count' => $totalScheduledClasses,
             ];
         }
 
-        // 6. Load the Blade view and generate PDF
         $pdf = Pdf::loadView('lecturer.reports.pdf_template', compact('unit', 'reportData', 'reportDates', 'startDate', 'endDate', 'user'));
         $filename = 'Attendance_Report_' . $unit->code . '_' . $startDate->format('Y-m-d') . '_to_' . $endDate->format('Y-m-d') . '.pdf';
 
