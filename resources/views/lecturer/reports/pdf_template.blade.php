@@ -115,7 +115,7 @@
         <p><strong>Unit:</strong> {{ $unit->name }} ({{ $unit->code }})</p>
         <p><strong>Course:</strong> {{ $unit->course->name }}</p>
         <p><strong>Level:</strong> {{ $unit->level->name ?? 'N/A' }}</p>
-        <p><strong>Lecturer:</strong> {{ $lecturer->user->name ?? 'N/A' }}</p>
+        <p><strong>Lecturer:</strong> {{ $user->name ?? 'N/A' }}</p>
         <p><strong>Report Period:</strong> {{ $startDate->format('d M, Y') }} - {{ $endDate->format('d M, Y') }}</p>
     </div>
 

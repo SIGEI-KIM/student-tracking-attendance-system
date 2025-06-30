@@ -19,9 +19,9 @@ use App\Http\Controllers\Student\StudentProfileController;
 use App\Http\Controllers\Student\StudentEnrollmentController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Student\StudentUnitsController;
-use App\Http\Controllers\Student\UnitCatalogController as StudentUnitCatalogController; 
-use App\Http\Controllers\Student\AttendanceController as StudentAttendanceController; 
-use App\Http\Controllers\Student\StudentAcademicController; 
+use App\Http\Controllers\Student\UnitCatalogController as StudentUnitCatalogController;
+use App\Http\Controllers\Student\AttendanceController as StudentAttendanceController; // Use an alias here to avoid conflict if you had another 'AttendanceController'
+use App\Http\Controllers\Student\StudentAcademicController;
 
 // Lecturer Controllers
 use App\Http\Controllers\Lecturer\CourseReportController;
@@ -29,9 +29,8 @@ use App\Http\Controllers\Lecturer\DashboardController as LecturerDashboardContro
 use App\Http\Controllers\Lecturer\ReportController as LecturerReportController;
 use App\Http\Controllers\Lecturer\UnitController as LecturerUnitController;
 use App\Http\Controllers\Lecturer\AttendanceController as LecturerAttendanceController;
-use App\Http\Controllers\Lecturer\AttendanceCodeController; 
-use App\Http\Controllers\Student\AttendanceController;
-use App\Http\Controllers\Lecturer\AnnouncementController; 
+use App\Http\Controllers\Lecturer\AttendanceCodeController;
+use App\Http\Controllers\Lecturer\AnnouncementController;
 
 
 Route::get('/', function () {
@@ -114,7 +113,7 @@ Route::prefix('lecturer')
         Route::get('/units', [LecturerUnitController::class, 'index'])->name('units.index');
         Route::get('/attendance-records', [LecturerAttendanceController::class, 'index'])->name('attendance_records.index');
 
-        // Routes for Announcements - Corrected namespace (implicitly handled by use statement)
+        // Routes for Announcements
         Route::get('/announcements', [AnnouncementController::class, 'index'])->name('announcements.index');
         Route::get('/announcements/create', [AnnouncementController::class, 'create'])->name('announcements.create');
         Route::post('/announcements', [AnnouncementController::class, 'store'])->name('announcements.store');
@@ -131,29 +130,32 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'student'])->gro
     Route::post('/profile/complete', [StudentProfileController::class, 'store'])->name('profile.store');
 
 
-    Route::get('/grades', [App\Http\Controllers\Student\GradeController::class, 'index'])->name('grades.index');
+    Route::get('/grades', [GradeController::class, 'index'])->name('grades.index');
     Route::get('/registration', [App\Http\Controllers\Student\RegistrationController::class, 'index'])->name('registration.index');
     Route::get('/timetable', [App\Http\Controllers\Student\TimetableController::class, 'index'])->name('timetable.index');
     Route::get('/fees', [App\Http\Controllers\Student\FeeController::class, 'index'])->name('fees.index');
     Route::get('/announcements', [App\Http\Controllers\Student\AnnouncementController::class, 'index'])->name('announcements.index');
-    Route::get('/library', function() { return view('student.library'); })->name('library.index'); 
-    Route::get('/it-support', function() { return view('student.it-support'); })->name('it-support.index'); 
+    Route::get('/library', function() { return view('student.library'); })->name('library.index');
+    Route::get('/it-support', function() { return view('student.it-support'); })->name('it-support.index');
 
     // Routes that require profile completion
     Route::middleware(['profile.complete'])->group(function () {
         Route::get('/enroll', [StudentEnrollmentController::class, 'index'])->name('enroll.index');
         Route::post('/enroll', [StudentEnrollmentController::class, 'store'])->name('enroll.store');
         Route::get('/my-units', [StudentUnitsController::class, 'index'])->name('my-units');
-        Route::get('/academic', [StudentAcademicController::class, 'index'])->name('academic.index'); 
+        Route::get('/academic', [StudentAcademicController::class, 'index'])->name('academic.index');
 
         // Unit Catalog Route
-        Route::get('/units/catalog', [StudentUnitCatalogController::class, 'index'])->name('units.catalog.index'); 
+        Route::get('/units/catalog', [StudentUnitCatalogController::class, 'index'])->name('units.catalog.index');
 
-        // Student Attendance Routes 
-        Route::get('/attendance/mark', [AttendanceController::class, 'showEnterCodeForm'])->name('attendance.enter_code');
-        Route::post('/attendance/submit', [AttendanceController::class, 'submitCode'])->name('attendance.submit_code');
+        // Student Attendance Routes
+        // Route for displaying the attendance page with units (index method)
         Route::get('/attendance', [StudentAttendanceController::class, 'index'])->name('attendance.index');
-        Route::post('/attendance/{unit}/mark', [StudentAttendanceController::class, 'mark'])->name('attendance.mark');
+        // New route for submitting the attendance code via the modal
+        Route::post('/attendance/mark-by-code', [StudentAttendanceController::class, 'markByCode'])->name('attendance.markByCode');
+
+        // Removed the old direct 'mark' route if you are fully moving to code-based system:
+        // Route::post('/attendance/{unit}/mark', [StudentAttendanceController::class, 'mark'])->name('attendance.mark');
     });
 });
 require __DIR__.'/auth.php';
