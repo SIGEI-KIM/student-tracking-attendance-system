@@ -20,8 +20,9 @@ use App\Http\Controllers\Student\StudentEnrollmentController;
 use App\Http\Controllers\Student\DashboardController as StudentDashboardController;
 use App\Http\Controllers\Student\StudentUnitsController;
 use App\Http\Controllers\Student\UnitCatalogController as StudentUnitCatalogController;
-use App\Http\Controllers\Student\AttendanceController as StudentAttendanceController; // Use an alias here to avoid conflict if you had another 'AttendanceController'
+use App\Http\Controllers\Student\AttendanceController as StudentAttendanceController;
 use App\Http\Controllers\Student\StudentAcademicController;
+use App\Http\Controllers\Student\LibraryController; // NEW: Import the LibraryController
 
 // Lecturer Controllers
 use App\Http\Controllers\Lecturer\CourseReportController;
@@ -135,7 +136,18 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'student'])->gro
     Route::get('/timetable', [App\Http\Controllers\Student\TimetableController::class, 'index'])->name('timetable.index');
     Route::get('/fees', [App\Http\Controllers\Student\FeeController::class, 'index'])->name('fees.index');
     Route::get('/announcements', [App\Http\Controllers\Student\AnnouncementController::class, 'index'])->name('announcements.index');
-    Route::get('/library', function() { return view('student.library'); })->name('library.index');
+
+    // CORRECTED LIBRARY ROUTES
+    // The main library page
+    Route::get('/library', [LibraryController::class, 'index'])->name('library.index');
+    // Route for searching books
+    Route::get('/library/search', [LibraryController::class, 'search'])->name('library.search');
+    // Route for borrowing a book (using POST for state change)
+    Route::post('/library/borrow/{book}', [LibraryController::class, 'borrow'])->name('library.borrow');
+    // Route for returning a book (using POST for state change)
+    Route::post('/library/return/{loan}', [LibraryController::class, 'returnBook'])->name('library.return');
+
+
     Route::get('/it-support', function() { return view('student.it-support'); })->name('it-support.index');
 
     // Routes that require profile completion
@@ -149,13 +161,8 @@ Route::prefix('student')->name('student.')->middleware(['auth', 'student'])->gro
         Route::get('/units/catalog', [StudentUnitCatalogController::class, 'index'])->name('units.catalog.index');
 
         // Student Attendance Routes
-        // Route for displaying the attendance page with units (index method)
         Route::get('/attendance', [StudentAttendanceController::class, 'index'])->name('attendance.index');
-        // New route for submitting the attendance code via the modal
         Route::post('/attendance/mark-by-code', [StudentAttendanceController::class, 'markByCode'])->name('attendance.markByCode');
-
-        // Removed the old direct 'mark' route if you are fully moving to code-based system:
-        // Route::post('/attendance/{unit}/mark', [StudentAttendanceController::class, 'mark'])->name('attendance.mark');
     });
 });
 require __DIR__.'/auth.php';

@@ -15,7 +15,8 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             AdminUserSeeder::class,
-            SemesterSeeder::class
+            SemesterSeeder::class,
+            UniversityBookSeeder::class, 
         ]);
     }
 }
